@@ -1,0 +1,7 @@
+# Dependencies list
+flask
+flask_sqlalchemy
+flask_login
+werkzeug
+flask_wtf
+wtforms

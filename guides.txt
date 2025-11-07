@@ -1,0 +1,5 @@
+_ first, create virtual environment : python -m venv venv
+_ after that, activiate it : 
+    _ for window:       venv\Scripts\activate
+    _ for mac/linux:    source venv/bin/activate
+
