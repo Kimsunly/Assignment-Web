@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base Layout</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="../../static/css/style.css">
+
+</head>
+<body>
+    <h2 class="text-center">This is a base layout to reuse later</h2>
+
+    <h3>This is for footer</h3>
+
+    <footer class="py-5 bg-light mt-5">
+        <div class="container">
+            <div class="row">
+                <!-- Sections -->
+                <div class="col-6 col-md-2 mb-3">
+                    <h5>Section</h5>
+
+                    <ul class="nav flex-column">
+                        <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-body-secondary">Home</a></li>
+                        <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-body-secondary">Features</a></li>
+                        <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-body-secondary">Pricing</a></li>
+                        <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-body-secondary">FAQs</a></li>
+                        <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-body-secondary">About</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-6 col-md-2 mb-3">
+                    <h5>Resources</h5>
+
+                    <ul class="nav flex-column">
+                        <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-body-secondary">Blog</a></li>
+                        <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-body-secondary">Docs</a></li>
+                        <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-body-secondary">Support</a></li>
+                        <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-body-secondary">Community</a></li>
+                        <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-body-secondary">API</a></li>
+                    </ul>
+                </div>
+
+                <!-- Newsletter -->
+                <div class="col-md-5 offset-md-1 mb-3">
+                    <h5>Contact & Support</h5>
+                    <p>Need help or have questions? Reach out to our support team or visit our FAQ section.</p>
+                    <ul class="list-unstyled">
+                        <li>Email: support@rupp.edu.kh</li>
+                        <li>Phone: +885 12 345 6789</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Bottom footer -->
+            <div class="d-flex flex-column flex-sm-row justify-content-between py-4 my-4 border-top">
+                <p class="mb-0">&copy; 2025 Company, Inc. All rights reserved.</p>
+                    <ul class="list-unstyled d-flex mb-0">
+                        <li class="ms-3">
+                            <a class="link-body-emphasis" href="#" aria-label="Instagram">
+                                <svg class="bi" width="24" height="24"><use xlink:href="#instagram"></use></svg>
+                            </a>
+                        </li>
+                        <li class="ms-3">
+                            <a class="link-body-emphasis" href="#" aria-label="Facebook">
+                                <svg class="bi" width="24" height="24"><use xlink:href="#facebook"></use></svg>
+                            </a>
+                        </li>
+                    </ul>
+            </div>
+        </div>
+    </footer>
+
+    <h3>This is for navBar</h3>
+
+    <nav class="navbar navbar-expand-lg" style="background-color: var(--primary);" aria-label="Education Navbar">
+        <div class="container">
+            <!-- Brand -->
+            <a class="navbar-brand text-light" href="#">EduSite</a>
+
+            <!-- Toggler for mobile -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarEdu" aria-controls="navbarEdu" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+            </button>
+
+            <!-- Navbar links -->
+            <div class="collapse navbar-collapse" id="navbarEdu">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link text-light active" aria-current="page" href="#">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-light" href="#">Courses</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-light" href="#">Resources</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-light" href="#" data-bs-toggle="dropdown" aria-expanded="false">More</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">About Us</a></li>
+                            <li><a class="dropdown-item" href="#">Contact</a></li>
+                            <li><a class="dropdown-item" href="#">FAQ</a></li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <!-- Search form -->
+                <form role="search" class="d-flex">
+                    <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                </form>
+            </div>
+        </div>
+    </nav>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
