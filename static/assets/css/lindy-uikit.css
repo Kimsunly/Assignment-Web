@@ -7,6 +7,10 @@ html {
   scroll-behavior: smooth;
 }
 
+:target {
+  scroll-margin-top: 70px;
+}
+
 body {
   font-family: "Heebo", sans-serif;
   color: #585978;

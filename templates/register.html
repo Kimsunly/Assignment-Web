@@ -1,21 +1,174 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="../static/css/style.css" />
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="../../static/css/style.css">
+
+    <style>
+
+        body {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        }
+
+        .signup-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(81, 74, 196, 0.1);
+        }
+
+        .signup-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            border: none;
+            box-shadow: 0 4px 15px rgba(81, 74, 196, 0.4);
+        }
+
+        .signup-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(81, 74, 196, 0.6);
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 100%;
+            height: 1px;
+            background: #e1e8ed;
+        }
+
+        .divider span {
+            background: white;
+            padding: 0 15px;
+            color: #999;
+            position: relative;
+            z-index: 1;
+        }
+
+        .social-btn {
+            border: 2px solid #e1e8ed;
+            background: white;
+        }
+
+        .social-btn:hover {
+            border-color: var(--primary);
+            background: var(--background);
+        }
+
+        .signin-link a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .signin-link a:hover {
+            color: var(--primary);
+        }
+    </style>
 </head>
-<body>
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-    <ul>
-        {% for message in messages %}
-        <li>{{ message }}</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
-    {% endwith %}
+
+<body class="d-flex justify-content-center align-items-center min-vh-100 p-3">
+
+    <div class="signup-container col-12 col-md-8 col-lg-6 col-xl-4 p-4">
+        <a class="d-flex justify-content-center w-25 m-auto" href="home.html">
+            <img src="../static/img/logo.png" alt="Logo"  width="150" height="100"/>
+        </a>
+        <div class="text-center mb-4">
+            <h1 class="text-primary fw-bold">Get Your Account</h1>
+            <p class="text-muted">Sign up to get started</p>
+        </div>
+
+        <form>
+            <div class="mb-3">
+                <label for="role" class="form-label">Select Role</label>
+                <select class="form-select" id="role">
+                    <option value="">Choose your role</option>
+                    <option value="student">Student</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="name" class="form-label">Full Name</label>
+                <input type="text" class="form-control" id="name" placeholder="Enter your name">
+            </div>
+
+            <div class="mb-3">
+                <label for="email" class="form-label">Email Address</label>
+                <input type="email" class="form-control" id="email" placeholder="Enter your email">
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" placeholder="Create a password">
+            </div>
+
+            <button type="button" class="btn btn-primary w-100 signup-btn mt-3" onclick="handleSignUp()">Sign Up</button>
+        </form>
+
+        <div class="divider text-center my-4 position-relative">
+            <span>OR</span>
+        </div>
+
+        <div class="text-center">
+            Already have an account? <a href="login.html" class="signin-link">Sign In</a>
+        </div>
+
+        <div class="text-center">
+            If you are a teacher, please <a href="home.html#contact" class="signin-link">contact us</a> for account creation.
+
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    <script>
+        function handleSignUp() {
+            const role = document.getElementById('role').value;
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (!role) {
+                alert('Please select your role');
+                return;
+            }
+
+            if (!name || !email || !password) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            // Simulate sign up
+            alert('Account created successfully!\nRole: ' + role.charAt(0).toUpperCase() + role.slice(1) + '\nWelcome, ' + name + '!');
+        }
+
+        function handleSocialSignUp(platform) {
+            alert('Sign up with ' + platform);
+        }
+    </script>
 </body>
+
 </html>
