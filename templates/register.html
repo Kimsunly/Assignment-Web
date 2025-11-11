@@ -4,146 +4,199 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up</title>
+    <title>Register - Your App Name</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}">
     <style>
-        :root {
-            --text: #080712;
-            --background: #f6f6f6;
-            --primary: #514ac4;
-            --secondary: #9d98e1;
-            --accent: #6962d5;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            transition: color 0.2s ease, background-color 0.2s ease;
-        }
-
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px 0;
+        }
+
+        .register-container {
+            max-width: 500px;
+            width: 100%;
             padding: 20px;
         }
 
-        .signup-container {
-            background: white;
+        .register-card {
+            background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            width: 100%;
-            max-width: 420px;
             padding: 40px;
-            animation: slideIn 0.5s ease-out;
+            backdrop-filter: blur(10px);
         }
 
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .signup-header {
+        .register-header {
             text-align: center;
-            margin-bottom: 35px;
+            margin-bottom: 30px;
         }
 
-        .signup-header h1 {
-            color: var(--primary);
-            font-size: 32px;
+        .register-header h2 {
+            color: #333;
+            font-weight: 700;
             margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .register-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-label {
             font-weight: 600;
-        }
-
-        .signup-header p {
-            color: var(--text);
-            font-size: 14px;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-        }
-
-        .input-group label {
-            display: block;
-            color: var(--text);
-            font-size: 14px;
-            font-weight: 500;
+            color: #333;
             margin-bottom: 8px;
+            font-size: 14px;
         }
 
-        .input-group input {
-            width: 100%;
-            padding: 14px 16px;
+        .form-control,
+        .form-select {
             border: 2px solid #e1e8ed;
             border-radius: 10px;
+            padding: 12px 15px;
             font-size: 15px;
             transition: all 0.3s ease;
-            background: var(--background);
         }
 
-        .input-group select {
-            width: 100%;
-            padding: 14px 16px;
-            border: 2px solid #e1e8ed;
-            border-radius: 10px;
-            font-size: 15px;
-            transition: all 0.3s ease;
-            background: var(--background);
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+        .form-select {
             cursor: pointer;
-            color: var(--text);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23333' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
         }
 
-        .input-group input:focus,
-        .input-group select:focus {
-            outline: none;
-            border-color: var(--primary);
+        .password-toggle {
+            position: relative;
+        }
+
+        .password-toggle .toggle-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #999;
+            user-select: none;
+        }
+
+        .role-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .role-option {
+            position: relative;
+        }
+
+        .role-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .role-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px 10px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
             background: white;
-            box-shadow: 0 0 0 3px rgba(81, 74, 196, 0.1);
+            text-align: center;
         }
 
-        .signup-btn {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-            color: var(--background);
+        .role-label .role-icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .role-label .role-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .role-option input[type="radio"]:checked+.role-label {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+
+        .role-option input[type="radio"]:checked+.role-label .role-name {
+            color: #667eea;
+        }
+
+        .role-label:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .password-strength {
+            height: 4px;
+            background: #e1e8ed;
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .password-strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: all 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .password-strength-text {
+            font-size: 12px;
+            margin-top: 5px;
+            color: #666;
+        }
+
+        .btn-register {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
             border-radius: 10px;
+            padding: 12px;
             font-size: 16px;
             font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(81, 74, 196, 0.4);
+            color: white;
+            width: 100%;
             margin-top: 10px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .signup-btn:hover {
+        .btn-register:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(81, 74, 196, 0.6);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
         }
 
-        .signup-btn:active {
+        .btn-register:active {
             transform: translateY(0);
         }
 
         .divider {
             text-align: center;
-            margin: 30px 0;
+            margin: 25px 0;
             position: relative;
         }
 
         .divider::before {
-            content: '';
+            content: "";
             position: absolute;
             left: 0;
             top: 50%;
@@ -153,7 +206,7 @@
         }
 
         .divider span {
-            background: white;
+            background: rgba(255, 255, 255, 0.95);
             padding: 0 15px;
             color: #999;
             font-size: 13px;
@@ -161,127 +214,207 @@
             z-index: 1;
         }
 
-        .social-login {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 25px;
-        }
-
-        .social-btn {
-            flex: 1;
-            padding: 12px;
-            border: 2px solid #e1e8ed;
-            border-radius: 10px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            font-weight: 500;
-            color: #555;
-        }
-
-        .social-btn:hover {
-            border-color: var(--primary);
-            background: var(--background);
-        }
-
-        .signin-link {
+        .login-link {
             text-align: center;
-            color: var(--text);
+            margin-top: 20px;
+            color: #666;
             font-size: 14px;
         }
 
-        .signin-link a {
-            color: var(--accent);
+        .login-link a {
+            color: #667eea;
             text-decoration: none;
             font-weight: 600;
             transition: color 0.3s ease;
         }
 
-        .signin-link a:hover {
-            color: var(--primary);
+        .login-link a:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        .alert {
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 576px) {
+            .register-card {
+                padding: 30px 25px;
+            }
+
+            .register-header h2 {
+                font-size: 24px;
+            }
+
+            .role-label .role-icon {
+                font-size: 20px;
+            }
+
+            .role-label .role-name {
+                font-size: 11px;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="signup-container">
-        <div class="signup-header">
-            <h1>Create Account</h1>
-            <p>Sign up to get started</p>
-        </div>
+    <div class="register-container">
+        <div class="register-card">
+            <div class="register-header">
+                <h2>Create Account</h2>
+                <p>Join us today and get started</p>
+            </div>
 
-        <div class="input-group">
-            <label for="role">Select Role</label>
-            <select id="role">
-                <option value="">Choose your role</option>
-                <option value="student">Student</option>
-                <option value="teacher">Teacher</option>
-                <option value="admin">Admin</option>
-            </select>
-        </div>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
 
-        <div class="input-group">
-            <label for="name">Full Name</label>
-            <input type="text" id="name" placeholder="Enter your name">
-        </div>
+            <form method="POST" action="{{ url_for('auth_bp.register') }}">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" name="username" id="username" class="form-control"
+                        placeholder="Choose a username" required autocomplete="username" minlength="3">
+                </div>
 
-        <div class="input-group">
-            <label for="email">Email Address</label>
-            <input type="email" id="email" placeholder="Enter your email">
-        </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <div class="password-toggle">
+                        <input type="password" name="password" id="password" class="form-control"
+                            placeholder="Create a strong password" required autocomplete="new-password" minlength="6"
+                            oninput="checkPasswordStrength()">
+                        <span class="toggle-icon" onclick="togglePassword('password')">👁️</span>
+                    </div>
+                    <div class="password-strength">
+                        <div class="password-strength-bar" id="strength-bar"></div>
+                    </div>
+                    <div class="password-strength-text" id="strength-text"></div>
+                </div>
 
-        <div class="input-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" placeholder="Create a password">
-        </div>
+                <div class="mb-3">
+                    <label for="confirm-password" class="form-label">Confirm Password</label>
+                    <div class="password-toggle">
+                        <input type="password" name="confirm_password" id="confirm-password" class="form-control"
+                            placeholder="Re-enter your password" required autocomplete="new-password"
+                            oninput="checkPasswordMatch()">
+                        <span class="toggle-icon" onclick="togglePassword('confirm-password')">👁️</span>
+                    </div>
+                    <small class="text-danger" id="password-match-error" style="display: none;">Passwords do not
+                        match</small>
+                </div>
 
-        <button class="signup-btn" onclick="handleSignUp()">Sign Up</button>
+                <div class="mb-4">
+                    <label class="form-label">Select Role</label>
+                    <div class="role-selector">
+                        <div class="role-option">
+                            <input type="radio" name="role" id="role-student" value="student" checked>
+                            <label for="role-student" class="role-label">
+                                <div class="role-icon">🎓</div>
+                                <div class="role-name">Student</div>
+                            </label>
+                        </div>
+                        <div class="role-option">
+                            <input type="radio" name="role" id="role-teacher" value="teacher">
+                            <label for="role-teacher" class="role-label">
+                                <div class="role-icon">👨‍🏫</div>
+                                <div class="role-name">Teacher</div>
+                            </label>
+                        </div>
+                        <div class="role-option">
+                            <input type="radio" name="role" id="role-admin" value="admin">
+                            <label for="role-admin" class="role-label">
+                                <div class="role-icon">👑</div>
+                                <div class="role-name">Admin</div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
 
-        <div class="divider">
-            <span>OR</span>
-        </div>
+                <button type="submit" class="btn btn-register" id="submit-btn">Create Account</button>
+            </form>
 
-        <div class="social-login">
-            <button class="social-btn" onclick="handleSocialSignUp('Google')">
-                <span>Google</span>
-            </button>
-            <button class="social-btn" onclick="handleSocialSignUp('Facebook')">
-                <span>Facebook</span>
-            </button>
-        </div>
+            <div class="divider">
+                <span>OR</span>
+            </div>
 
-        <div class="signin-link">
-            Already have an account? <a href="#">Sign In</a>
+            <div class="login-link">
+                Already have an account? <a href="{{ url_for('auth_bp.login') }}">Login here</a>
+            </div>
         </div>
     </div>
 
     <script>
-        function handleSignUp() {
-            const role = document.getElementById('role').value;
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+        function togglePassword(fieldId) {
+            const passwordInput = document.getElementById(fieldId);
+            const toggleIcon = passwordInput.parentElement.querySelector('.toggle-icon');
 
-            if (!role) {
-                alert('Please select your role');
-                return;
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.textContent = '🙈';
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.textContent = '👁️';
             }
-
-            if (!name || !email || !password) {
-                alert('Please fill in all fields');
-                return;
-            }
-
-            // Simulate sign up
-            alert('Account created successfully!\nRole: ' + role.charAt(0).toUpperCase() + role.slice(1) + '\nWelcome, ' + name + '!');
         }
 
-        function handleSocialSignUp(platform) {
-            alert('Sign up with ' + platform);
+        function checkPasswordStrength() {
+            const password = document.getElementById('password').value;
+            const strengthBar = document.getElementById('strength-bar');
+            const strengthText = document.getElementById('strength-text');
+
+            let strength = 0;
+            let text = '';
+            let color = '';
+
+            if (password.length >= 6) strength += 25;
+            if (password.length >= 10) strength += 25;
+            if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength += 25;
+            if (/[0-9]/.test(password) && /[^a-zA-Z0-9]/.test(password)) strength += 25;
+
+            if (strength <= 25) {
+                text = 'Weak';
+                color = '#ff4757';
+            } else if (strength <= 50) {
+                text = 'Fair';
+                color = '#ffa502';
+            } else if (strength <= 75) {
+                text = 'Good';
+                color = '#1e90ff';
+            } else {
+                text = 'Strong';
+                color = '#2ed573';
+            }
+
+            strengthBar.style.width = strength + '%';
+            strengthBar.style.background = color;
+            strengthText.textContent = password.length > 0 ? text : '';
+            strengthText.style.color = color;
+
+            checkPasswordMatch();
+        }
+
+        function checkPasswordMatch() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const errorText = document.getElementById('password-match-error');
+            const submitBtn = document.getElementById('submit-btn');
+
+            if (confirmPassword.length > 0 && password !== confirmPassword) {
+                errorText.style.display = 'block';
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.5';
+            } else {
+                errorText.style.display = 'none';
+                submitBtn.disabled = false;
+                submitBtn.style.opacity = '1';
+            }
         }
     </script>
 </body>

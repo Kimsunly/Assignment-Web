@@ -1,9 +1,16 @@
+# routes/teacher.py
 from flask import Blueprint, render_template
+from flask_login import login_required, current_user
 
-# ✅ Create the blueprint properly
-teacher_bp = Blueprint("teacher_bp", __name__, url_prefix="/teacher")
+teacher_bp = Blueprint('teacher_bp', __name__,
+                       url_prefix='/teacher', template_folder='templates')
 
 
-@teacher_bp.route("/dashboard")
+@teacher_bp.route('/dashboard')
+@login_required
 def dashboard():
-    return render_template("teacher/dashboard.html")
+    # optionally check role
+    if current_user.role != 'teacher':
+        return "Unauthorized", 403
+    # fetch teacher's assignments from DB as needed
+    return render_template('teacher/dashboard.html')
