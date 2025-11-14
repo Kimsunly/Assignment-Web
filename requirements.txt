@@ -1,7 +1,8 @@
 # Dependencies list
 flask
-flask_sqlalchemy
-flask_login
+flask-sqlalchemy
+flask-login
 werkzeug
-flask_wtf
+flask-wtf
 wtforms
+python-dotenv

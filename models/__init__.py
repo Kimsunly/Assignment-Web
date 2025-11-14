@@ -2,7 +2,10 @@ from .user import User
 from .student import Student
 from .teacher import Teacher
 from .assignment import Assignment
+from .class_model import Class
+from .submission import Submission
 
-from flask_sqlalchemy import SQLAlchemy
+# Import db from extensions instead of creating a new instance
+from extensions import db
 
-db = SQLAlchemy()
+__all__ = ['User', 'Student', 'Teacher', 'Assignment', 'Class', 'Submission', 'db']

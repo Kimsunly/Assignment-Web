@@ -39,9 +39,9 @@
 
 {% block search_placeholder %}Search grades, subjects...{% endblock %}
 
-{% block user_avatar %}{{ current_user.username[0] }}{% endblock %}
+{% block user_avatar %}{{ current_user.username[0].upper() }}{% endblock %}
 {% block user_name %}{{ current_user.username }}{% endblock %}
-{% block user_id %}ID: {{ current_user.id }}{% endblock %}
+{% block user_id %}{{ student.user.username }}{% endblock %}
 
 {% block content %}
 <!-- Page Header -->
@@ -61,28 +61,28 @@
         <div class="stat-icon">
             <i class="fas fa-percentage"></i>
         </div>
-        <div class="stat-value">85.5%</div>
+        <div class="stat-value">{{ overall_stats.average }}%</div>
         <div class="stat-label">Overall Average</div>
     </div>
     <div class="stat-card success">
         <div class="stat-icon">
             <i class="fas fa-trophy"></i>
         </div>
-        <div class="stat-value">A-</div>
+        <div class="stat-value">{{ overall_stats.letter_grade }}</div>
         <div class="stat-label">Letter Grade</div>
     </div>
     <div class="stat-card primary">
         <div class="stat-icon">
             <i class="fas fa-award"></i>
         </div>
-        <div class="stat-value">12</div>
+        <div class="stat-value">{{ overall_stats.graded_count }}</div>
         <div class="stat-label">Graded Assignments</div>
     </div>
     <div class="stat-card warning">
         <div class="stat-icon">
             <i class="fas fa-clock"></i>
         </div>
-        <div class="stat-value">3</div>
+        <div class="stat-value">{{ overall_stats.pending_count }}</div>
         <div class="stat-label">Pending Grades</div>
     </div>
 </div>
@@ -91,166 +91,62 @@
 <div class="content-card">
     <div class="card-header">
         <h4><i class="fas fa-book-open"></i> Performance by Subject</h4>
-        <select class="filter-select">
-            <option>All Subjects</option>
-            <option>Mathematics</option>
-            <option>Physics</option>
-            <option>Computer Science</option>
-            <option>English Literature</option>
-        </select>
     </div>
 
+    {% if subjects_performance %}
     <div class="subjects-grid">
+        {% for subject in subjects_performance %}
         <div class="subject-card">
             <div class="subject-header">
-                <div class="subject-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
-                    <i class="fas fa-calculator"></i>
-                </div>
-                <div class="subject-info">
-                    <h5>Mathematics</h5>
-                    <p>Prof. Johnson</p>
-                </div>
-            </div>
-            <div class="subject-grade">
-                <div class="grade-circle excellent">
-                    <span class="grade-value">92%</span>
-                    <span class="grade-letter">A</span>
-                </div>
-            </div>
-            <div class="subject-stats">
-                <div class="stat-item">
-                    <span class="stat-label">Assignments</span>
-                    <span class="stat-value">5/5</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Highest</span>
-                    <span class="stat-value">98%</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Lowest</span>
-                    <span class="stat-value">85%</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="subject-card">
-            <div class="subject-header">
-                <div class="subject-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
-                    <i class="fas fa-atom"></i>
-                </div>
-                <div class="subject-info">
-                    <h5>Physics</h5>
-                    <p>Dr. Smith</p>
-                </div>
-            </div>
-            <div class="subject-grade">
-                <div class="grade-circle good">
-                    <span class="grade-value">88%</span>
-                    <span class="grade-letter">B+</span>
-                </div>
-            </div>
-            <div class="subject-stats">
-                <div class="stat-item">
-                    <span class="stat-label">Assignments</span>
-                    <span class="stat-value">4/4</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Highest</span>
-                    <span class="stat-value">95%</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Lowest</span>
-                    <span class="stat-value">78%</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="subject-card">
-            <div class="subject-header">
-                <div class="subject-icon" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
-                    <i class="fas fa-laptop-code"></i>
-                </div>
-                <div class="subject-info">
-                    <h5>Computer Science</h5>
-                    <p>Prof. Anderson</p>
-                </div>
-            </div>
-            <div class="subject-grade">
-                <div class="grade-circle excellent">
-                    <span class="grade-value">90%</span>
-                    <span class="grade-letter">A-</span>
-                </div>
-            </div>
-            <div class="subject-stats">
-                <div class="stat-item">
-                    <span class="stat-label">Assignments</span>
-                    <span class="stat-value">3/4</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Highest</span>
-                    <span class="stat-value">96%</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Lowest</span>
-                    <span class="stat-value">82%</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="subject-card">
-            <div class="subject-header">
-                <div class="subject-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+                <div class="subject-icon"
+                    style="background: rgba({{ loop.index * 50 % 255 }}, {{ loop.index * 80 % 255 }}, {{ loop.index * 120 % 255 }}, 0.1); color: rgb({{ loop.index * 50 % 255 }}, {{ loop.index * 80 % 255 }}, {{ loop.index * 120 % 255 }});">
                     <i class="fas fa-book"></i>
                 </div>
                 <div class="subject-info">
-                    <h5>English Literature</h5>
-                    <p>Ms. Williams</p>
+                    <h5>{{ subject.class.name }}</h5>
+                    <p>{{ subject.teacher.full_name if subject.teacher else 'No Teacher' }}</p>
                 </div>
             </div>
             <div class="subject-grade">
-                <div class="grade-circle average">
-                    <span class="grade-value">72%</span>
-                    <span class="grade-letter">C+</span>
+                <div
+                    class="grade-circle {% if subject.average >= 90 %}excellent{% elif subject.average >= 80 %}good{% else %}average{% endif %}">
+                    <span class="grade-value">{{ subject.average }}%</span>
+                    <span class="grade-letter">{{ subject.letter_grade }}</span>
                 </div>
             </div>
             <div class="subject-stats">
                 <div class="stat-item">
                     <span class="stat-label">Assignments</span>
-                    <span class="stat-value">2/3</span>
+                    <span class="stat-value">{{ subject.assignments_count }}</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-label">Highest</span>
-                    <span class="stat-value">80%</span>
+                    <span class="stat-value">{{ subject.highest|round(1) }}%</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-label">Lowest</span>
-                    <span class="stat-value">65%</span>
+                    <span class="stat-value">{{ subject.lowest|round(1) }}%</span>
                 </div>
             </div>
         </div>
+        {% endfor %}
     </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-chart-line"></i>
+        <h5>No grades yet</h5>
+        <p>Your subject performance will appear here once assignments are graded</p>
+    </div>
+    {% endif %}
 </div>
 
 <!-- Detailed Grades Table -->
 <div class="content-card">
     <div class="card-header">
         <h4><i class="fas fa-list"></i> All Graded Assignments</h4>
-        <div class="filter-group">
-            <select class="filter-select">
-                <option>All Subjects</option>
-                <option>Mathematics</option>
-                <option>Physics</option>
-                <option>Computer Science</option>
-                <option>English Literature</option>
-            </select>
-            <select class="filter-select">
-                <option>Sort by Date</option>
-                <option>Sort by Grade</option>
-                <option>Sort by Subject</option>
-            </select>
-        </div>
     </div>
 
+    {% if all_submissions %}
     <div class="table-responsive">
         <table class="grades-table">
             <thead>
@@ -265,149 +161,102 @@
                 </tr>
             </thead>
             <tbody>
+                {% for item in all_submissions %}
                 <tr>
                     <td>
                         <div class="assignment-name">
                             <i class="fas fa-file-alt"></i>
-                            Calculus Problem Set 5
+                            {{ item.assignment.title }}
                         </div>
                     </td>
-                    <td>Mathematics</td>
-                    <td>Nov 10, 2024</td>
-                    <td>Nov 9, 2024</td>
+                    <td>{{ item.class.name }}</td>
+                    <td>{{ item.assignment.due_date.strftime('%b %d, %Y') if item.assignment.due_date else 'N/A' }}</td>
+                    <td>{{ item.submission.submitted_at.strftime('%b %d, %Y') if item.submission.submitted_at else 'N/A'
+                        }}</td>
                     <td>
                         <div class="progress-bar">
-                            <div class="progress-fill" style="width: 92%; background: var(--success-color);"></div>
+                            <div class="progress-fill"
+                                style="width: {{ item.submission.grade }}%; background: {% if item.submission.grade >= 90 %}var(--success-color){% elif item.submission.grade >= 80 %}var(--info-color){% elif item.submission.grade >= 70 %}var(--warning-color){% else %}var(--danger-color){% endif %};">
+                            </div>
                         </div>
                     </td>
-                    <td><span class="grade-badge excellent">92% A</span></td>
                     <td>
-                        <button class="btn-icon" title="View Feedback">
+                        <span
+                            class="grade-badge {% if item.submission.grade >= 90 %}excellent{% elif item.submission.grade >= 80 %}good{% elif item.submission.grade >= 70 %}average{% else %}poor{% endif %}">
+                            {{ item.submission.grade|round(1) }}%
+                            {% if item.submission.grade >= 90 %}A{% elif item.submission.grade >= 80 %}B{% elif
+                            item.submission.grade >= 70 %}C{% elif item.submission.grade >= 60 %}D{% else %}F{% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        {% if item.submission.feedback %}
+                        <button class="btn-icon" title="View Feedback"
+                            onclick="alert('{{ item.submission.feedback|replace("'", "\\'") }}')">
                             <i class="fas fa-comment-dots"></i>
                         </button>
+                        {% else %}
+                        <span style="color: #9ca3af; font-size: 0.85rem;">No feedback</span>
+                        {% endif %}
                     </td>
                 </tr>
-                <tr>
-                    <td>
-                        <div class="assignment-name">
-                            <i class="fas fa-file-alt"></i>
-                            Quantum Mechanics Lab Report
-                        </div>
-                    </td>
-                    <td>Physics</td>
-                    <td>Nov 8, 2024</td>
-                    <td>Nov 8, 2024</td>
-                    <td>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 88%; background: var(--info-color);"></div>
-                        </div>
-                    </td>
-                    <td><span class="grade-badge good">88% B+</span></td>
-                    <td>
-                        <button class="btn-icon" title="View Feedback">
-                            <i class="fas fa-comment-dots"></i>
-                        </button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class="assignment-name">
-                            <i class="fas fa-file-alt"></i>
-                            Data Structures Project
-                        </div>
-                    </td>
-                    <td>Computer Science</td>
-                    <td>Nov 5, 2024</td>
-                    <td>Nov 4, 2024</td>
-                    <td>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 96%; background: var(--success-color);"></div>
-                        </div>
-                    </td>
-                    <td><span class="grade-badge excellent">96% A+</span></td>
-                    <td>
-                        <button class="btn-icon" title="View Feedback">
-                            <i class="fas fa-comment-dots"></i>
-                        </button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class="assignment-name">
-                            <i class="fas fa-file-alt"></i>
-                            Shakespeare Essay
-                        </div>
-                    </td>
-                    <td>English Literature</td>
-                    <td>Nov 3, 2024</td>
-                    <td>Nov 3, 2024</td>
-                    <td>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 72%; background: var(--warning-color);"></div>
-                        </div>
-                    </td>
-                    <td><span class="grade-badge average">72% C+</span></td>
-                    <td>
-                        <button class="btn-icon" title="View Feedback">
-                            <i class="fas fa-comment-dots"></i>
-                        </button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class="assignment-name">
-                            <i class="fas fa-file-alt"></i>
-                            Linear Algebra Quiz 3
-                        </div>
-                    </td>
-                    <td>Mathematics</td>
-                    <td>Oct 30, 2024</td>
-                    <td>Oct 30, 2024</td>
-                    <td>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 85%; background: var(--info-color);"></div>
-                        </div>
-                    </td>
-                    <td><span class="grade-badge good">85% B</span></td>
-                    <td>
-                        <button class="btn-icon" title="View Feedback">
-                            <i class="fas fa-comment-dots"></i>
-                        </button>
-                    </td>
-                </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <h5>No graded assignments yet</h5>
+        <p>Your graded assignments will appear here</p>
+    </div>
+    {% endif %}
 </div>
 
 <!-- Grade Distribution Chart -->
+{% if grade_distribution %}
 <div class="content-card">
     <div class="card-header">
         <h4><i class="fas fa-chart-pie"></i> Grade Distribution</h4>
     </div>
     <div class="distribution-chart">
+        {% if grade_distribution.A > 0 %}
         <div class="distribution-item">
-            <div class="distribution-bar" style="width: 45%; background: var(--success-color);">
-                <span>A/A+ (45%)</span>
+            <div class="distribution-bar" style="width: {{ grade_distribution.A }}%; background: var(--success-color);">
+                <span>A/A+ ({{ grade_distribution.A }}%)</span>
             </div>
         </div>
+        {% endif %}
+        {% if grade_distribution.B > 0 %}
         <div class="distribution-item">
-            <div class="distribution-bar" style="width: 30%; background: var(--info-color);">
-                <span>B/B+ (30%)</span>
+            <div class="distribution-bar" style="width: {{ grade_distribution.B }}%; background: var(--info-color);">
+                <span>B/B+ ({{ grade_distribution.B }}%)</span>
             </div>
         </div>
+        {% endif %}
+        {% if grade_distribution.C > 0 %}
         <div class="distribution-item">
-            <div class="distribution-bar" style="width: 20%; background: var(--warning-color);">
-                <span>C/C+ (20%)</span>
+            <div class="distribution-bar" style="width: {{ grade_distribution.C }}%; background: var(--warning-color);">
+                <span>C/C+ ({{ grade_distribution.C }}%)</span>
             </div>
         </div>
+        {% endif %}
+        {% if grade_distribution.D > 0 %}
         <div class="distribution-item">
-            <div class="distribution-bar" style="width: 5%; background: var(--danger-color);">
-                <span>D/F (5%)</span>
+            <div class="distribution-bar" style="width: {{ grade_distribution.D }}%; background: var(--danger-color);">
+                <span>D ({{ grade_distribution.D }}%)</span>
             </div>
         </div>
+        {% endif %}
+        {% if grade_distribution.F > 0 %}
+        <div class="distribution-item">
+            <div class="distribution-bar" style="width: {{ grade_distribution.F }}%; background: #dc2626;">
+                <span>F ({{ grade_distribution.F }}%)</span>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
+{% endif %}
 {% endblock %}
 
 {% block extra_css %}
@@ -429,26 +278,6 @@
     .page-header p {
         color: #6b7280;
         margin: 0;
-    }
-
-    .filter-select {
-        padding: 0.5rem 1rem;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        font-size: 0.9rem;
-        background: white;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-
-    .filter-select:focus {
-        outline: none;
-        border-color: var(--primary-color);
-    }
-
-    .filter-group {
-        display: flex;
-        gap: 0.75rem;
     }
 
     /* Subject Cards */
@@ -650,6 +479,11 @@
         color: var(--warning-color);
     }
 
+    .grade-badge.poor {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger-color);
+    }
+
     .btn-icon {
         width: 36px;
         height: 36px;
@@ -682,6 +516,7 @@
         font-weight: 600;
         font-size: 0.9rem;
         transition: all 0.3s;
+        min-width: 150px;
     }
 
     .distribution-bar:hover {
@@ -694,15 +529,6 @@
             flex-direction: column;
             align-items: flex-start;
             gap: 1rem;
-        }
-
-        .filter-group {
-            flex-direction: column;
-            width: 100%;
-        }
-
-        .filter-select {
-            width: 100%;
         }
 
         .subjects-grid {
