@@ -39,9 +39,9 @@
 
 {% block search_placeholder %}Search profile settings...{% endblock %}
 
-{% block user_avatar %}{{ current_user.username[0] }}{% endblock %}
+{% block user_avatar %}{{ current_user.username[0].upper() }}{% endblock %}
 {% block user_name %}{{ current_user.username }}{% endblock %}
-{% block user_id %}ID: {{ current_user.id }}{% endblock %}
+{% block user_id %}{{ student.user.username }}{% endblock %}
 
 {% block content %}
 <!-- Page Header -->
@@ -60,28 +60,28 @@
         <div class="content-card profile-card">
             <div class="profile-header">
                 <div class="profile-avatar-large">
-                    {{ current_user.username[0] }}
+                    {{ current_user.username[0].upper() }}
                 </div>
                 <button class="btn-edit-avatar" title="Change Avatar">
                     <i class="fas fa-camera"></i>
                 </button>
             </div>
             <div class="profile-info-center">
-                <h3>{{ current_user.username }}</h3>
+                <h3>{{ student.full_name }}</h3>
                 <p class="profile-role">Student</p>
-                <p class="profile-id">Student ID: STU-2024-001</p>
+                <p class="profile-id">Username: {{ current_user.username }}</p>
             </div>
             <div class="profile-stats-mini">
                 <div class="stat-mini">
-                    <div class="stat-mini-value">4</div>
+                    <div class="stat-mini-value">{{ profile_stats.courses }}</div>
                     <div class="stat-mini-label">Courses</div>
                 </div>
                 <div class="stat-mini">
-                    <div class="stat-mini-value">85%</div>
+                    <div class="stat-mini-value">{{ profile_stats.average_grade }}%</div>
                     <div class="stat-mini-label">Avg Grade</div>
                 </div>
                 <div class="stat-mini">
-                    <div class="stat-mini-value">17</div>
+                    <div class="stat-mini-value">{{ profile_stats.total_assignments }}</div>
                     <div class="stat-mini-label">Assignments</div>
                 </div>
             </div>
@@ -93,19 +93,19 @@
                 <h4><i class="fas fa-bolt"></i> Quick Actions</h4>
             </div>
             <div class="quick-actions">
-                <button class="quick-action-btn">
+                <button class="quick-action-btn" onclick="window.print()">
                     <i class="fas fa-download"></i>
                     <span>Download Transcript</span>
                 </button>
-                <button class="quick-action-btn">
+                <button class="quick-action-btn" onclick="window.print()">
                     <i class="fas fa-print"></i>
                     <span>Print ID Card</span>
                 </button>
-                <button class="quick-action-btn">
+                <button class="quick-action-btn" onclick="alert('Schedule feature coming soon!')">
                     <i class="fas fa-calendar"></i>
                     <span>View Schedule</span>
                 </button>
-                <button class="quick-action-btn">
+                <button class="quick-action-btn" onclick="window.location.href='mailto:support@university.edu'">
                     <i class="fas fa-envelope"></i>
                     <span>Contact Support</span>
                 </button>
@@ -126,25 +126,20 @@
             <form class="profile-form" id="personalInfoForm">
                 <div class="form-grid">
                     <div class="form-group">
-                        <label><i class="fas fa-user"></i> Full Name</label>
-                        <input type="text" class="form-input" value="John Doe" disabled>
+                        <label><i class="fas fa-user"></i> First Name</label>
+                        <input type="text" class="form-input" value="{{ student.first_name or '' }}" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> Last Name</label>
+                        <input type="text" class="form-input" value="{{ student.last_name or '' }}" disabled>
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-envelope"></i> Email Address</label>
-                        <input type="email" class="form-input" value="john.doe@university.edu" disabled>
+                        <input type="email" class="form-input" value="{{ current_user.email }}" disabled>
                     </div>
                     <div class="form-group">
-                        <label><i class="fas fa-phone"></i> Phone Number</label>
-                        <input type="tel" class="form-input" value="+1 (555) 123-4567" disabled>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-calendar-alt"></i> Date of Birth</label>
-                        <input type="date" class="form-input" value="2002-05-15" disabled>
-                    </div>
-                    <div class="form-group full-width">
-                        <label><i class="fas fa-map-marker-alt"></i> Address</label>
-                        <input type="text" class="form-input" value="123 University Avenue, College Town, ST 12345"
-                            disabled>
+                        <label><i class="fas fa-id-badge"></i> Username</label>
+                        <input type="text" class="form-input" value="{{ current_user.username }}" disabled>
                     </div>
                 </div>
                 <div class="form-actions" style="display: none;">
@@ -167,23 +162,23 @@
                 <div class="info-item">
                     <div class="info-label">
                         <i class="fas fa-building"></i>
-                        Department
+                        Major
                     </div>
-                    <div class="info-value">Computer Science</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">
-                        <i class="fas fa-user-graduate"></i>
-                        Program
-                    </div>
-                    <div class="info-value">Bachelor of Science</div>
+                    <div class="info-value">{{ student.major or 'Not Set' }}</div>
                 </div>
                 <div class="info-item">
                     <div class="info-label">
                         <i class="fas fa-calendar"></i>
                         Year
                     </div>
-                    <div class="info-value">3rd Year</div>
+                    <div class="info-value">{{ student.year or 'Not Set' }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-users"></i>
+                        Section
+                    </div>
+                    <div class="info-value">{{ student.section or 'Not Set' }}</div>
                 </div>
                 <div class="info-item">
                     <div class="info-label">
@@ -191,22 +186,26 @@
                         Status
                     </div>
                     <div class="info-value">
-                        <span class="status-badge active">Active</span>
+                        <span
+                            class="status-badge {% if current_user.status == 'active' %}active{% else %}inactive{% endif %}">
+                            {{ current_user.status|capitalize }}
+                        </span>
                     </div>
                 </div>
                 <div class="info-item">
                     <div class="info-label">
                         <i class="fas fa-sign-in-alt"></i>
-                        Enrollment Date
+                        Member Since
                     </div>
-                    <div class="info-value">September 2022</div>
+                    <div class="info-value">{{ student.created_at.strftime('%B %Y') if student.created_at else 'N/A' }}
+                    </div>
                 </div>
                 <div class="info-item">
                     <div class="info-label">
-                        <i class="fas fa-flag-checkered"></i>
-                        Expected Graduation
+                        <i class="fas fa-book-reader"></i>
+                        Enrolled Courses
                     </div>
-                    <div class="info-value">May 2026</div>
+                    <div class="info-value">{{ profile_stats.courses }}</div>
                 </div>
             </div>
         </div>
@@ -215,77 +214,46 @@
         <div class="content-card">
             <div class="card-header">
                 <h4><i class="fas fa-book-open"></i> Current Courses</h4>
-                <span class="semester-badge">Fall 2024</span>
+                <span class="semester-badge">Active</span>
             </div>
+
+            {% if current_courses %}
             <div class="courses-list">
+                {% for course in current_courses %}
                 <div class="course-item">
-                    <div class="course-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
-                        <i class="fas fa-calculator"></i>
-                    </div>
-                    <div class="course-info">
-                        <h5>Advanced Calculus</h5>
-                        <p>MATH 301 • Prof. Johnson</p>
-                        <div class="course-details">
-                            <span><i class="fas fa-clock"></i> Mon, Wed, Fri 10:00 AM</span>
-                            <span><i class="fas fa-chart-line"></i> 3 Credits</span>
-                        </div>
-                    </div>
-                    <div class="course-grade">
-                        <span class="grade-indicator excellent">A</span>
-                    </div>
-                </div>
-
-                <div class="course-item">
-                    <div class="course-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
-                        <i class="fas fa-atom"></i>
-                    </div>
-                    <div class="course-info">
-                        <h5>Quantum Physics</h5>
-                        <p>PHYS 401 • Dr. Smith</p>
-                        <div class="course-details">
-                            <span><i class="fas fa-clock"></i> Tue, Thu 2:00 PM</span>
-                            <span><i class="fas fa-chart-line"></i> 4 Credits</span>
-                        </div>
-                    </div>
-                    <div class="course-grade">
-                        <span class="grade-indicator good">B+</span>
-                    </div>
-                </div>
-
-                <div class="course-item">
-                    <div class="course-icon" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
-                        <i class="fas fa-laptop-code"></i>
-                    </div>
-                    <div class="course-info">
-                        <h5>Data Structures & Algorithms</h5>
-                        <p>CS 302 • Prof. Anderson</p>
-                        <div class="course-details">
-                            <span><i class="fas fa-clock"></i> Mon, Wed 1:00 PM</span>
-                            <span><i class="fas fa-chart-line"></i> 4 Credits</span>
-                        </div>
-                    </div>
-                    <div class="course-grade">
-                        <span class="grade-indicator excellent">A-</span>
-                    </div>
-                </div>
-
-                <div class="course-item">
-                    <div class="course-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+                    <div class="course-icon"
+                        style="background: rgba({{ loop.index * 50 % 255 }}, {{ loop.index * 80 % 255 }}, {{ loop.index * 120 % 255 }}, 0.1); color: rgb({{ loop.index * 50 % 255 }}, {{ loop.index * 80 % 255 }}, {{ loop.index * 120 % 255 }});">
                         <i class="fas fa-book"></i>
                     </div>
                     <div class="course-info">
-                        <h5>English Literature</h5>
-                        <p>ENG 201 • Ms. Williams</p>
+                        <h5>{{ course.class.name }}</h5>
+                        <p>{{ course.teacher.full_name if course.teacher else 'No Teacher Assigned' }}</p>
                         <div class="course-details">
-                            <span><i class="fas fa-clock"></i> Tue, Thu 11:00 AM</span>
-                            <span><i class="fas fa-chart-line"></i> 3 Credits</span>
+                            <span><i class="fas fa-users"></i> {{ course.class.students.count() }} Students</span>
+                            <span><i class="fas fa-tasks"></i> {{ course.class.assignments.count() }} Assignments</span>
                         </div>
                     </div>
                     <div class="course-grade">
-                        <span class="grade-indicator average">C+</span>
+                        {% if course.average %}
+                        <span
+                            class="grade-indicator {% if course.average >= 90 %}excellent{% elif course.average >= 80 %}good{% else %}average{% endif %}">
+                            {{ course.letter_grade }}
+                        </span>
+                        {% else %}
+                        <span class="grade-indicator"
+                            style="background: rgba(156, 163, 175, 0.1); color: #6b7280;">N/A</span>
+                        {% endif %}
                     </div>
                 </div>
+                {% endfor %}
             </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-book-open"></i>
+                <h5>No courses enrolled</h5>
+                <p>You are not enrolled in any courses yet</p>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Account Security -->
@@ -293,7 +261,8 @@
             <div class="card-header">
                 <h4><i class="fas fa-shield-alt"></i> Account Security</h4>
             </div>
-            <form class="profile-form">
+            <form class="profile-form"
+                onsubmit="event.preventDefault(); alert('Password change feature will be implemented soon!');">
                 <div class="form-group">
                     <label><i class="fas fa-lock"></i> Current Password</label>
                     <input type="password" class="form-input" placeholder="Enter current password">
@@ -636,6 +605,11 @@
         color: var(--success-color);
     }
 
+    .status-badge.inactive {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger-color);
+    }
+
     .semester-badge {
         padding: 0.4rem 0.9rem;
         background: rgba(91, 127, 255, 0.1);
@@ -839,21 +813,29 @@
         const inputs = form.querySelectorAll('.form-input');
         const actions = form.querySelector('.form-actions');
 
-        editBtn.addEventListener('click', function () {
-            inputs.forEach(input => input.disabled = false);
-            actions.style.display = 'flex';
-            editBtn.style.display = 'none';
-        });
+        if (editBtn) {
+            editBtn.addEventListener('click', function () {
+                inputs.forEach(input => {
+                    if (input.type !== 'email') { // Keep email disabled
+                        input.disabled = false;
+                    }
+                });
+                actions.style.display = 'flex';
+                editBtn.style.display = 'none';
+            });
+        }
 
-        cancelBtn.addEventListener('click', function () {
-            inputs.forEach(input => input.disabled = true);
-            actions.style.display = 'none';
-            editBtn.style.display = 'inline-block';
-        });
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', function () {
+                inputs.forEach(input => input.disabled = true);
+                actions.style.display = 'none';
+                editBtn.style.display = 'inline-block';
+            });
+        }
 
         form.addEventListener('submit', function (e) {
             e.preventDefault();
-            alert('Profile updated successfully!');
+            alert('Profile update feature will be implemented soon!');
             inputs.forEach(input => input.disabled = true);
             actions.style.display = 'none';
             editBtn.style.display = 'inline-block';
