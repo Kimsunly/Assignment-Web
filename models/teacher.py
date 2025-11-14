@@ -1,10 +1,13 @@
-# models/teacher.py
 from extensions import db
 
 
 class Teacher(db.Model):
-    __tablename__ = "teachers"
+    __tablename__ = 'teachers'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80), nullable=False)
-    subject = db.Column(db.String(80))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    department = db.Column(db.String(100))
+    subject = db.Column(db.String(100))
+
+    def __repr__(self):
+        return f"<Teacher {self.user.username}>"
