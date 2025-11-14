@@ -1,486 +1,243 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Teacher Dashboard</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
-    <style>
-        /* === YOUR COLOR SCHEME === */
-        :root {
-            --text: #080712;
-            --background: #f6f6f6;
-            --primary: #514ac4;
-            --secondary: #9d98e1;
-            --accent: #6962d5;
-        }
+{% block title %}Teacher Dashboard{% endblock %}
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            transition: color 0.2s ease, background-color 0.2s ease;
-        }
+{% block sidebar_subtitle %}Teacher Portal{% endblock %}
 
-        body {
-            background-color: var(--background);
-            color: var(--text);
-            font-family: 'Segoe UI', sans-serif;
-            line-height: 1.6;
-        }
+{% block sidebar_menu %}
+<li>
+    <a href="{{ url_for('teacher_bp.dashboard') }}" class="active">
+        <i class="fas fa-home"></i>
+        Dashboard
+    </a>
+</li>
+<li>
+    <a href="{{ url_for('teacher_bp.teacher_students') }}">
+        <i class="fas fa-users"></i>
+        My Students
+    </a>
+</li>
+<li>
+    <a href="{{ url_for('teacher_bp.teacher_classes') }}">
+        <i class="fas fa-chalkboard"></i>
+        Classes
+    </a>
+</li>
+<li>
+    <a href="{{ url_for('teacher_bp.teacher_assignments') }}">
+        <i class="fas fa-tasks"></i>
+        Assignments
+    </a>
+</li>
+<li>
+    <a href="{{ url_for('teacher_bp.teacher_grades') }}">
+        <i class="fas fa-chart-line"></i>
+        Grades
+    </a>
+</li>
+<li>
+    <a href="{{ url_for('teacher_bp.teacher_profile') }}">
+        <i class="fas fa-user-edit"></i>
+        Edit Profile
+    </a>
+</li>
+<li style="margin-top: 2rem;">
+    <a href="{{ url_for('auth_bp.logout') }}">
+        <i class="fas fa-sign-out-alt"></i>
+        Logout
+    </a>
+</li>
+{% endblock %}
 
-        a {
-            color: var(--accent);
-            text-decoration: none;
-        }
+{% block search_placeholder %}Search students, classes, assignments...{% endblock %}
 
-        h1,
-        h2,
-        h3 {
-            color: var(--primary);
-        }
+{% block user_avatar %}{{ teacher.user.username[0]|upper }}{% endblock %}
+{% block user_name %}{{ teacher.user.username }}{% endblock %}
+{% block user_id %}Teacher ID: {{ teacher.id }}{% endblock %}
 
-        .container {
-            max-width: 1200px;
-            margin: auto;
-            padding: 1rem;
-        }
+{% block content %}
+<!-- Welcome Message -->
+<div style="margin-bottom: 1.5rem;">
+    <h2 style="font-weight: 700; color: #1f2937; margin-bottom: 0.5rem;">
+        Welcome back, {{ teacher.user.username }}!
+    </h2>
+    <p style="color: #6b7280; margin: 0;">Here's what's happening today</p>
+</div>
 
-        .header {
-            background: #fff;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, .1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+<div class="alert alert-{{ category }} alert-dismissible fade show" role="alert"
+    style="border-radius: 12px; margin-bottom: 1.5rem;">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
 
-        .header .container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+<!-- Stats Cards -->
+<div class="stats-grid">
+    <div class="stat-card primary">
+        <div class="stat-icon"><i class="fas fa-users"></i></div>
+        <div class="stat-value">{{ stats.total_students }}</div>
+        <div class="stat-label">Total Students</div>
+    </div>
+    <div class="stat-card success">
+        <div class="stat-icon"><i class="fas fa-chalkboard"></i></div>
+        <div class="stat-value">{{ stats.total_classes }}</div>
+        <div class="stat-label">Active Classes</div>
+    </div>
+    <div class="stat-card warning">
+        <div class="stat-icon"><i class="fas fa-tasks"></i></div>
+        <div class="stat-value">{{ stats.pending_assignments }}</div>
+        <div class="stat-label">Pending Grading</div>
+    </div>
+    <div class="stat-card info">
+        <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+        <div class="stat-value">{{ stats.upcoming_deadlines }}</div>
+        <div class="stat-label">Upcoming Deadlines</div>
+    </div>
+</div>
 
-        .logo {
-            font-weight: 700;
-            font-size: 1.5rem;
-            color: var(--primary);
-        }
-
-        .user-menu {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--primary);
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-
-        .sidebar {
-            background: #fff;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
-            margin-top: 1rem;
-            width: 250px;
-        }
-
-        .sidebar a {
-            display: block;
-            padding: 1rem 1.5rem;
-            color: var(--text);
-            border-bottom: 1px solid #eee;
-            display: flex;
-            align-items: center;
-            gap: .75rem;
-            font-weight: 500;
-        }
-
-        .sidebar a:hover,
-        .sidebar a.active {
-            background: var(--secondary);
-            color: #fff;
-        }
-
-        .main-content {
-            display: grid;
-            grid-template-columns: 250px 1fr;
-            gap: 1.5rem;
-            margin-top: 1.5rem;
-        }
-
-        @media (max-width: 768px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
-
-            .sidebar {
-                display: none;
-            }
-        }
-
-        .card {
-            background: #fff;
-            border-radius: 16px;
-            padding: 1.5rem;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, .06);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .card-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-        }
-
-        .btn {
-            padding: .6rem 1.2rem;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: .5rem;
-            font-size: .9rem;
-        }
-
-        .btn-primary {
-            background-color: var(--primary);
-            color: #fff;
-        }
-
-        .btn-secondary {
-            background-color: var(--secondary);
-            color: var(--text);
-        }
-
-        .btn-sm {
-            padding: .4rem .8rem;
-            font-size: .8rem;
-        }
-
-        .btn:hover {
-            transform: translateY(-1px);
-        }
-
-        .assignment-card {
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            background: #fcfcfc;
-            transition: .2s;
-        }
-
-        .assignment-card:hover {
-            box-shadow: 0 4px 16px rgba(81, 74, 196, 0.15);
-            border-color: var(--primary);
-        }
-
-        .assignment-title {
-            font-weight: 600;
-            margin-bottom: .4rem;
-            color: var(--text);
-        }
-
-        .due-date {
-            font-size: .875rem;
-            color: var(--accent);
-        }
-
-        .badge {
-            padding: .25rem .6rem;
-            border-radius: 6px;
-            font-size: .75rem;
-            font-weight: 600;
-        }
-
-        .badge-pending {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .badge-submitted {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .badge-late {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .badge-graded {
-            background: #e0e7ff;
-            color: var(--primary);
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, .5);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: #fff;
-            border-radius: 16px;
-            width: 90%;
-            max-width: 500px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 10px 30px rgba(81, 74, 196, 0.2);
-        }
-
-        .modal-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-body {
-            padding: 1.5rem;
-        }
-
-        .modal-footer {
-            padding: 1rem 1.5rem;
-            border-top: 1px solid #eee;
-            text-align: right;
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: .5rem;
-            font-weight: 500;
-            color: var(--text);
-        }
-
-        .form-control {
-            width: 100%;
-            padding: .75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            font-size: 1rem;
-            background: #fff;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(81, 74, 196, 0.2);
-        }
-
-        @media (max-width: 768px) {
-            .header .container {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            .card-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-    <div class="header">
-        <div class="container">
-            <div class="logo">AssignmentHub</div>
-            <div class="user-menu">
-                <span>Prof. Smith</span>
-                <div class="avatar">PS</div>
-            </div>
+<!-- Content Grid: Classes & Assignments -->
+<div
+    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+    <!-- Classes Card -->
+    <div class="content-card">
+        <div class="card-header">
+            <h4><i class="fas fa-chalkboard"></i> My Classes</h4>
+            <a href="{{ url_for('teacher_bp.teacher_classes') }}" class="btn-custom btn-primary-custom">View All</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Class Name</th>
+                        <th>Students</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for class in recent_classes %}
+                    <tr>
+                        <td>{{ class.name }}</td>
+                        <td>{{ class.student_count }}</td>
+                        <td><span class="badge badge-submitted">Active</span></td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3">
+                            <div class="empty-state">
+                                <i class="fas fa-chalkboard"></i>
+                                <h5>No classes yet</h5>
+                                <p>Create your first class to get started</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <div class="container">
-        <div class="main-content">
-            <nav class="sidebar">
-                <a href="#" class="active" data-page="dashboard"><i class="fas fa-home"></i> Dashboard</a>
-                <a href="#" data-page="assignments"><i class="fas fa-tasks"></i> Assignments</a>
-                <a href="#" data-page="classes"><i class="fas fa-users"></i> Classes</a>
-            </nav>
-
-            <div id="page-content">
-                <section id="dashboard" class="page">
-                    <div class="card">
-                        <div class="card-header">
-                            <h2 class="card-title">Welcome, Prof. Smith!</h2>
-                            <button class="btn btn-primary" onclick="openCreateModal()">New Assignment</button>
-                        </div>
-                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;">
-                            <div class="card">
-                                <h3>Total</h3>
-                                <h2>4</h2>
+    <!-- Assignments Card -->
+    <div class="content-card">
+        <div class="card-header">
+            <h4><i class="fas fa-tasks"></i> Recent Assignments</h4>
+            <a href="{{ url_for('teacher_bp.teacher_assignments') }}" class="btn-custom btn-primary-custom">Manage</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Assignment</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for assignment in recent_assignments %}
+                    <tr>
+                        <td>{{ assignment.title }}</td>
+                        <td>{{ assignment.due_date }}</td>
+                        <td>
+                            {% if assignment.status == 'pending' %}
+                            <span class="badge badge-pending">Pending</span>
+                            {% elif assignment.status == 'graded' %}
+                            <span class="badge badge-graded">Graded</span>
+                            {% else %}
+                            <span class="badge badge-submitted">Active</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3">
+                            <div class="empty-state">
+                                <i class="fas fa-tasks"></i>
+                                <h5>No assignments yet</h5>
+                                <p>Create assignments for your classes</p>
                             </div>
-                            <div class="card">
-                                <h3>Pending</h3>
-                                <h2 style="color:#d97706;">2</h2>
-                            </div>
-                            <div class="card">
-                                <h3>On-Time</h3>
-                                <h2 style="color:#10b981;">88%</h2>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <h3 class="card-title">Recent Submissions</h3>
-                        <div id="recent-submissions"></div>
-                    </div>
-                </section>
-
-                <section id="assignments" class="page" style="display:none">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">My Assignments</h3>
-                            <button class="btn btn-primary" onclick="openCreateModal()">Create New</button>
-                        </div>
-                        <div id="assignment-list"></div>
-                    </div>
-                </section>
-
-                <section id="classes" class="page" style="display:none">
-                    <div class="card">
-                        <h3 class="card-title">My Classes</h3>
-                        <div id="class-list"></div>
-                    </div>
-                </section>
-            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
+</div>
 
-    <div class="modal" id="create-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Create Assignment</h3><button class="btn btn-sm" onclick="closeModal()">x</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group"><label>Title</label><input type="text" class="form-control" id="assign-title"
-                        placeholder="e.g. Calculus Homework #4" /></div>
-                <div class="form-group"><label>Class</label><select class="form-control" id="assign-class">
-                        <option>Math 101</option>
-                        <option>Physics 201</option>
-                        <option>CS 301</option>
-                    </select></div>
-                <div class="form-group"><label>Due Date</label><input type="datetime-local" class="form-control"
-                        id="assign-due" /></div>
-                <div class="form-group"><label>Description</label><textarea class="form-control" rows="4"
-                        id="assign-desc"></textarea></div>
-            </div>
-            <div class="modal-footer"><button class="btn btn-primary" onclick="createAssignment()">Create</button></div>
-        </div>
+<!-- Recent Students Card -->
+<div class="content-card">
+    <div class="card-header">
+        <h4><i class="fas fa-users"></i> Recent Student Activity</h4>
+        <a href="{{ url_for('teacher_bp.teacher_students') }}" class="btn-custom btn-primary-custom">View All
+            Students</a>
     </div>
-
-    <script>
-        let assignments = [
-            { id: 1, title: 'Calculus Homework #3', subject: 'Math 101', due: '2025-11-12T23:59', status: 'pending', submissions: 12, graded: 10 },
-            { id: 2, title: 'Physics Lab Report', subject: 'Physics 201', due: '2025-11-15T23:59', status: 'pending', submissions: 8, graded: 6 },
-            { id: 3, title: 'Climate Change Essay', subject: 'English 102', due: '2025-11-08T23:59', status: 'late', submissions: 15, graded: 15 },
-            { id: 4, title: 'Java Project', subject: 'CS 301', due: '2025-11-05T23:59', status: 'graded', submissions: 20, graded: 20 }
-        ];
-        const classes = [{ name: 'Math 101', students: 42 }, { name: 'Physics 201', students: 38 }, { name: 'CS 301', students: 35 }];
-
-        document.querySelectorAll('.sidebar a').forEach(l => l.addEventListener('click', e => { e.preventDefault(); switchPage(l.dataset.page); }));
-
-        function switchPage(id) {
-            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-            document.getElementById(id).style.display = 'block';
-            document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
-            document.querySelector(`[data-page="${id}"]`).classList.add('active');
-            if (id === 'dashboard') renderRecent(); if (id === 'assignments') renderAssignments(); if (id === 'classes') renderClasses();
-        }
-
-        function renderRecent() {
-            const c = document.getElementById('recent-submissions'); c.innerHTML = '';
-            assignments.slice(0, 3).forEach(a => {
-                const card = document.createElement('div'); card.className = 'assignment-card';
-                card.innerHTML = `
-        <div class="assignment-title">${a.title}</div>
-        <div class="due-date">${a.subject} • Due: ${new Date(a.due).toLocaleDateString()}</div>
-        <div style="margin-top:.5rem;display:flex;justify-content:space-between;">
-          <span class="badge badge-${a.status}">${a.status.toUpperCase()}</span>
-          <span style="font-size:.875rem;color:var(--accent);">${a.graded}/${a.submissions} graded</span>
-        </div>`;
-                c.appendChild(card);
-            });
-        }
-
-        function renderAssignments() {
-            const list = document.getElementById('assignment-list'); list.innerHTML = '';
-            assignments.forEach(a => {
-                const card = document.createElement('div'); card.className = 'assignment-card';
-                card.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <div><div class="assignment-title">${a.title}</div><div class="due-date">${a.subject} • Due: ${new Date(a.due).toLocaleDateString()}</div></div>
-          <div><span class="badge badge-${a.status}">${a.status.toUpperCase()}</span>
-            <button class="btn btn-sm" style="margin-left:.5rem;" onclick="event.stopPropagation();alert('Grading ${a.title}...')">
-              Grade (${a.graded}/${a.submissions})
-            </button>
-          </div>
-        </div>`;
-                list.appendChild(card);
-            });
-        }
-
-        function renderClasses() {
-            const list = document.getElementById('class-list'); list.innerHTML = '';
-            classes.forEach(c => {
-                const div = document.createElement('div');
-                div.style = 'padding:1rem;border-bottom:1px solid #eee;display:flex;justify-content:space-between;';
-                div.innerHTML = `<strong>${c.name}</strong><span>${c.students} students</span>`;
-                list.appendChild(div);
-            });
-        }
-
-        function openCreateModal() { document.getElementById('create-modal').classList.add('active'); }
-        function closeModal() { document.getElementById('create-modal').classList.remove('active'); }
-
-        function createAssignment() {
-            const title = document.getElementById('assign-title').value.trim();
-            if (!title) return alert('Title required!');
-            assignments.push({
-                id: assignments.length + 1, title,
-                subject: document.getElementById('assign-class').value,
-                due: document.getElementById('assign-due').value,
-                status: 'pending', submissions: 0, graded: 0
-            });
-            closeModal(); alert('Created!'); renderAssignments(); renderRecent();
-        }
-
-        switchPage('dashboard');
-    </script>
-</body>
-
-</html>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Student Name</th>
+                    <th>Class</th>
+                    <th>Last Assignment</th>
+                    <th>Grade</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in recent_students %}
+                <tr>
+                    <td>{{ student.first_name }} {{ student.last_name }}</td>
+                    <td>{{ student.class_name }}</td>
+                    <td>{{ student.last_assignment }}</td>
+                    <td>
+                        {% if student.grade %}
+                        {{ student.grade }}%
+                        {% else %}
+                        Not Graded
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('teacher_bp.view_student', id=student.id) }}"
+                            class="btn-custom btn-outline-custom">View</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5">
+                        <div class="empty-state">
+                            <i class="fas fa-users"></i>
+                            <h5>No student activity yet</h5>
+                            <p>Student submissions will appear here</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

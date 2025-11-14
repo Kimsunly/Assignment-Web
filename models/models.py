@@ -1,5 +1,5 @@
-# models/models.py
-from models.user import User
-from models.teacher import Teacher
-from models.student import Student
-from models.assignment import Assignment
+from .user import User
+from .student import Student
+from .teacher import Teacher
+from .assignment import Assignment
+from .class_model import Class
