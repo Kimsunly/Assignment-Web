@@ -84,6 +84,7 @@
             <h4><i class="fas fa-user"></i> Profile Information</h4>
         </div>
         <form method="POST" action="{{ url_for('admin_bp.edit_profile') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <!-- Avatar Section -->
             <div
                 style="text-align: center; margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 2px solid var(--light-bg);">
@@ -147,6 +148,7 @@
             <h4><i class="fas fa-lock"></i> Security Settings</h4>
         </div>
         <form method="POST" action="{{ url_for('admin_bp.edit_profile') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <input type="hidden" name="form_type" value="security">
 
             <div style="margin-bottom: 1.5rem;">

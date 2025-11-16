@@ -209,11 +209,8 @@
 <script>
     function deleteStudent(studentId) {
         if (confirm('Are you sure you want to delete this student? This action cannot be undone.')) {
-            fetch(`/admin/users/${studentId}/delete`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+            fetchWithCSRF(`/admin/users/${studentId}/delete`, {
+                method: 'DELETE'
             })
                 .then(response => response.json())
                 .then(data => {

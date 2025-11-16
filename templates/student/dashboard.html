@@ -12,6 +12,12 @@
     </a>
 </li>
 <li>
+    <a href="{{ url_for('student_bp.classes') }}">
+        <i class="fas fa-book"></i>
+        Classes
+    </a>
+</li>
+<li>
     <a href="{{ url_for('student_bp.assignments') }}">
         <i class="fas fa-tasks"></i>
         Assignments
@@ -90,30 +96,31 @@
     </div>
 
     {% if assignments %}
-    {% for assignment in assignments[:3] %}
+    {% for item in assignments[:3] %}
+    {% set assignment = item.assignment %}
+    {% set submission = item.submission %}
+    {% set status = 'graded' if submission and submission.grade is not none else 'submitted' if submission else 'pending' %}
     <div class="assignment-item">
         <div class="assignment-header">
             <div>
                 <div class="assignment-title">{{ assignment.title }}</div>
-                <div class="assignment-subject">{{ assignment.subject }}</div>
+                <div class="assignment-subject">{{ item.class_name }}</div>
             </div>
-            {% if assignment.status == 'pending' %}
+            {% if status == 'pending' %}
             <span class="badge badge-pending">PENDING</span>
-            {% elif assignment.status == 'submitted' %}
+            {% elif status == 'submitted' %}
             <span class="badge badge-submitted">SUBMITTED</span>
-            {% elif assignment.status == 'graded' %}
+            {% elif status == 'graded' %}
             <span class="badge badge-graded">GRADED</span>
-            {% elif assignment.status == 'late' %}
-            <span class="badge badge-late">LATE</span>
             {% endif %}
         </div>
         <div class="assignment-meta">
             <div class="due-date">
                 <i class="far fa-calendar"></i>
-                Due: {{ assignment.due_date.strftime('%b %d, %Y') }}
+                Due: {{ assignment.due_date.strftime('%b %d, %Y') if assignment.due_date else 'N/A' }}
             </div>
-            {% if assignment.status == 'pending' %}
-            <a href="{{ url_for('student_bp.submit_assignment', id=assignment.id) }}"
+            {% if status == 'pending' %}
+            <a href="{{ url_for('student_bp.assignments') }}"
                 class="btn-custom btn-success-custom" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
                 <i class="fas fa-upload"></i> Submit
             </a>
@@ -143,7 +150,6 @@
             <thead>
                 <tr>
                     <th>Assignment</th>
-                    <th>Subject</th>
                     <th>Score</th>
                     <th>Status</th>
                 </tr>
@@ -152,11 +158,10 @@
                 {% for grade in grades[:5] %}
                 <tr>
                     <td>{{ grade.assignment_title }}</td>
-                    <td>{{ grade.subject }}</td>
                     <td>
                         <span
-                            class="grade-score {% if grade.score >= 90 %}grade-excellent{% elif grade.score >= 80 %}grade-good{% elif grade.score >= 70 %}grade-average{% else %}grade-poor{% endif %}">
-                            {{ grade.score }}%
+                            class="grade-score {% if grade.grade >= 90 %}grade-excellent{% elif grade.grade >= 80 %}grade-good{% elif grade.grade >= 70 %}grade-average{% else %}grade-poor{% endif %}">
+                            {{ grade.grade }}%
                         </span>
                     </td>
                     <td>

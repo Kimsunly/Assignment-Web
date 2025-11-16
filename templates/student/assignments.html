@@ -12,6 +12,12 @@
     </a>
 </li>
 <li>
+    <a href="{{ url_for('student_bp.classes') }}">
+        <i class="fas fa-book"></i>
+        Classes
+    </a>
+</li>
+<li>
     <a href="{{ url_for('student_bp.assignments') }}" class="active">
         <i class="fas fa-tasks"></i>
         Assignments
@@ -1048,6 +1054,9 @@
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
 
+        // Add CSRF token to FormData
+        formData.append('csrf_token', getCSRFToken());
+        
         fetch('/student/assignments/submit', {
             method: 'POST',
             body: formData
@@ -1094,17 +1103,18 @@
                     </div>
                     ${data.attachments && data.attachments.length > 0 ? `
                     <div class="detail-section">
-                        <strong>Attachments:</strong>
+                        <strong>Assignment Files:</strong>
                         <div class="attachment-list">
                             ${data.attachments.map(att => `
-                                <a href="/student/download/${att.filename}" class="attachment-item" target="_blank">
+                                <a href="${att.url}" class="attachment-item" target="_blank">
                                     <i class="fas fa-file-${att.icon}"></i>
                                     <span>${att.filename}</span>
+                                    <i class="fas fa-download" style="margin-left: auto; color: #6b7280;"></i>
                                 </a>
                             `).join('')}
                         </div>
                     </div>
-                    ` : ''}
+                    ` : '<div class="detail-section"><strong>Assignment Files:</strong> <p style="color: #9ca3af; margin-top: 0.5rem;">No files attached</p></div>'}
                 `;
                 document.getElementById('detailsModal').classList.add('active');
                 document.body.style.overflow = 'hidden';

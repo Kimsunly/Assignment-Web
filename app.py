@@ -3,17 +3,52 @@ from flask import Flask, render_template
 from config import Config
 from extensions import db, login_manager, csrf
 import os
+import logging
+from logging.handlers import RotatingFileHandler
+
+# Try to import Flask-Migrate (optional)
+try:
+    from flask_migrate import Migrate
+    migrate = Migrate()
+except ImportError:
+    migrate = None
 
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
-    # Ensure upload folders exist
-    os.makedirs(app.config.get("UPLOAD_FOLDER",
-                "static/uploads/assignments"), exist_ok=True)
-    os.makedirs(app.config.get("SUBMISSION_FOLDER",
-                "static/uploads/submissions"), exist_ok=True)
+    # Configure logging
+    if not app.debug:
+        if not os.path.exists('logs'):
+            os.mkdir('logs')
+        file_handler = RotatingFileHandler('logs/app.log', maxBytes=10240, backupCount=10)
+        file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+        ))
+        file_handler.setLevel(logging.INFO)
+        app.logger.addHandler(file_handler)
+        app.logger.setLevel(logging.INFO)
+        app.logger.info('Application startup')
+
+    # Upload Configuration - ADDED
+    app.config['UPLOAD_FOLDER'] = app.config.get(
+        'UPLOAD_FOLDER', 'static/uploads')
+    app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+    app.config['ALLOWED_EXTENSIONS'] = {
+        'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'txt'}
+
+    # Ensure upload folders exist - UPDATED
+    upload_folders = [
+        app.config.get("UPLOAD_FOLDER", "static/uploads"),
+        os.path.join(app.config.get("UPLOAD_FOLDER",
+                     "static/uploads"), "avatars"),
+        app.config.get("UPLOAD_FOLDER", "static/uploads/assignments"),
+        app.config.get("SUBMISSION_FOLDER", "static/uploads/submissions")
+    ]
+
+    for folder in upload_folders:
+        os.makedirs(folder, exist_ok=True)
 
     # Initialize extensions
     db.init_app(app)
@@ -21,37 +56,61 @@ def create_app():
     login_manager.login_view = 'auth_bp.login'
     login_manager.session_protection = 'strong'
     csrf.init_app(app)  # Initialize CSRF protection
+    
+    # Initialize Flask-Migrate if available
+    if migrate:
+        migrate.init_app(app, db)
+    
+    # Make CSRF token function available in templates
+    @app.context_processor
+    def inject_csrf():
+        from flask_wtf.csrf import generate_csrf
+        def csrf_token():
+            return generate_csrf()
+        return dict(csrf_token=csrf_token)
+    
+    # Flask-WTF automatically accepts CSRF tokens from:
+    # 1. Form data (csrf_token field)
+    # 2. X-CSRFToken header (for AJAX/JSON requests)
 
     # Import models so SQLAlchemy recognizes them
     with app.app_context():
         import models.models  # registers User, Teacher, Student, Assignment, Class, Submission
-        
+
         # Check if database exists and if schema is outdated
-        db_file = app.config['SQLALCHEMY_DATABASE_URI'].replace('sqlite:///', '')
+        db_file = app.config['SQLALCHEMY_DATABASE_URI'].replace(
+            'sqlite:///', '')
         db_exists = os.path.exists(db_file)
-        
+
         # Drop and recreate all tables if RECREATE_DB environment variable is set
         if os.environ.get('RECREATE_DB', '').lower() == 'true':
-            print("⚠️  RECREATE_DB is set to True - dropping all tables...")
+            print("WARNING: RECREATE_DB is set to True - dropping all tables...")
             db.drop_all()
-            print("✅ All tables dropped")
+            print("SUCCESS: All tables dropped")
         elif db_exists:
-            # Check if schema is outdated by testing a query
+            # Check if schema is outdated by testing queries on multiple models
+            schema_outdated = False
             try:
                 from models.user import User
-                # Try to query - if it fails, schema is outdated
+                from models.class_model import Class
+                # Try to query both User and Class - if either fails, schema is outdated
                 test_user = User.query.first()
+                test_class = Class.query.first()
             except Exception as e:
-                if 'no such column' in str(e).lower():
-                    print("⚠️  Detected outdated database schema. Recreating tables...")
-                    print(f"   Error: {str(e)[:100]}")
-                    db.drop_all()
-                    print("✅ Old tables dropped")
+                error_str = str(e).lower()
+                if 'no such column' in error_str or 'no such table' in error_str:
+                    print("WARNING: Detected outdated database schema. Recreating tables...")
+                    print(f"   Error: {str(e)[:150]}")
+                    schema_outdated = True
                 else:
                     raise
-        
+            
+            if schema_outdated:
+                db.drop_all()
+                print("SUCCESS: Old tables dropped")
+
         db.create_all()
-        print("✅ Database tables created/verified")
+        print("SUCCESS: Database tables created/verified")
 
     # Define user loader AFTER models are imported
     from models.user import User
@@ -74,18 +133,29 @@ def create_app():
     # Home route — redirects or shows welcome page
     @app.route('/')
     def home():
-        return render_template('login.html')
-    
+        return render_template('home.html')
+
+    # Helper function for file uploads - ADDED
+    def allowed_file(filename):
+        """Check if uploaded file has an allowed extension"""
+        return '.' in filename and \
+               filename.rsplit('.', 1)[1].lower(
+               ) in app.config['ALLOWED_EXTENSIONS']
+
+    # Make it available to the app context
+    app.allowed_file = allowed_file
+
     # Error handlers
     @app.errorhandler(404)
     def not_found_error(error):
         return render_template('errors/404.html'), 404
-    
+
     @app.errorhandler(500)
     def internal_error(error):
         db.session.rollback()
+        app.logger.error(f'Server Error: {error}', exc_info=True)
         return render_template('errors/500.html'), 500
-    
+
     @app.errorhandler(403)
     def forbidden_error(error):
         return render_template('errors/403.html'), 403
