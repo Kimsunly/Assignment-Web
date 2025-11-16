@@ -1,5 +1,5 @@
 # app.py
-from flask import Flask, render_template
+from flask import Flask, render_template, send_from_directory
 from config import Config
 from extensions import db, login_manager, csrf
 import os
@@ -22,7 +22,8 @@ def create_app():
     if not app.debug:
         if not os.path.exists('logs'):
             os.mkdir('logs')
-        file_handler = RotatingFileHandler('logs/app.log', maxBytes=10240, backupCount=10)
+        file_handler = RotatingFileHandler(
+            'logs/app.log', maxBytes=10240, backupCount=10)
         file_handler.setFormatter(logging.Formatter(
             '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
         ))
@@ -56,19 +57,20 @@ def create_app():
     login_manager.login_view = 'auth_bp.login'
     login_manager.session_protection = 'strong'
     csrf.init_app(app)  # Initialize CSRF protection
-    
+
     # Initialize Flask-Migrate if available
     if migrate:
         migrate.init_app(app, db)
-    
+
     # Make CSRF token function available in templates
     @app.context_processor
     def inject_csrf():
         from flask_wtf.csrf import generate_csrf
+
         def csrf_token():
             return generate_csrf()
         return dict(csrf_token=csrf_token)
-    
+
     # Flask-WTF automatically accepts CSRF tokens from:
     # 1. Form data (csrf_token field)
     # 2. X-CSRFToken header (for AJAX/JSON requests)
@@ -99,12 +101,13 @@ def create_app():
             except Exception as e:
                 error_str = str(e).lower()
                 if 'no such column' in error_str or 'no such table' in error_str:
-                    print("WARNING: Detected outdated database schema. Recreating tables...")
+                    print(
+                        "WARNING: Detected outdated database schema. Recreating tables...")
                     print(f"   Error: {str(e)[:150]}")
                     schema_outdated = True
                 else:
                     raise
-            
+
             if schema_outdated:
                 db.drop_all()
                 print("SUCCESS: Old tables dropped")
@@ -134,6 +137,13 @@ def create_app():
     @app.route('/')
     def home():
         return render_template('home.html')
+
+    # Serve favicon at /favicon.ico to avoid 404 requests
+    @app.route('/favicon.ico')
+    def favicon():
+        # Use the site's login illustration as a simple favicon fallback
+        return send_from_directory(os.path.join(app.root_path, 'static', 'uploads', 'images'),
+                                   'login-illustration.png', mimetype='image/png')
 
     # Helper function for file uploads - ADDED
     def allowed_file(filename):
