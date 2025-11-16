@@ -10,6 +10,7 @@ from models.class_model import Class
 from models.submission import Submission
 from werkzeug.security import generate_password_hash
 from datetime import datetime
+import os
 from utils.helpers import (
     validate_email, validate_password, sanitize_username, 
     get_user_display_name, format_datetime
@@ -678,6 +679,59 @@ def delete_user(user_id):
         return jsonify({'success': False, 'message': str(e)}), 400
 
 
+@admin_bp.route("/assignments/<int:assignment_id>")
+@admin_required
+def view_assignment(assignment_id):
+    """Get assignment details for admin"""
+    assignment = Assignment.query.get_or_404(assignment_id)
+    
+    # Get assignment files
+    attachments = []
+    assignment_files_dir = os.path.join('static', 'uploads', 'assignments', str(assignment.id))
+    
+    if os.path.exists(assignment_files_dir):
+        for filename in os.listdir(assignment_files_dir):
+            file_path = os.path.join(assignment_files_dir, filename)
+            if os.path.isfile(file_path):
+                ext = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
+                icon_map = {
+                    'pdf': 'pdf',
+                    'doc': 'word',
+                    'docx': 'word',
+                    'txt': 'alt',
+                    'jpg': 'image',
+                    'jpeg': 'image',
+                    'png': 'image',
+                    'xlsx': 'excel',
+                    'xls': 'excel',
+                    'zip': 'archive'
+                }
+                icon = icon_map.get(ext, 'file')
+                
+                attachments.append({
+                    'filename': filename,
+                    'icon': icon
+                })
+    
+    # Get submission count
+    submission_count = Submission.query.filter_by(assignment_id=assignment_id).count()
+    graded_count = Submission.query.filter_by(assignment_id=assignment_id).filter(Submission.grade.isnot(None)).count()
+    
+    return jsonify({
+        'id': assignment.id,
+        'title': assignment.title,
+        'description': assignment.description or 'No description provided',
+        'teacher': assignment.class_obj.teacher.full_name if assignment.class_obj and assignment.class_obj.teacher else 'No Teacher',
+        'course': assignment.class_obj.name if assignment.class_obj else 'No Course',
+        'due_date': assignment.due_date.strftime('%b %d, %Y at %I:%M %p') if assignment.due_date else 'N/A',
+        'status': assignment.status or 'pending',
+        'created_at': assignment.created_at.strftime('%b %d, %Y') if assignment.created_at else 'N/A',
+        'submission_count': submission_count,
+        'graded_count': graded_count,
+        'attachments': attachments
+    })
+
+
 @admin_bp.route("/assignments/<int:assignment_id>/delete", methods=['POST', 'DELETE'])
 @admin_required
 def delete_assignment(assignment_id):
@@ -693,8 +747,6 @@ def delete_assignment(assignment_id):
         db.session.delete(assignment)
         db.session.commit()
 
-        flash(
-            f'Assignment "{assignment_title}" deleted successfully!', 'success')
         return jsonify({'success': True, 'message': f'Assignment "{assignment_title}" deleted successfully'})
     except Exception as e:
         db.session.rollback()
