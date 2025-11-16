@@ -10,7 +10,7 @@ except ImportError:
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
-
+    #ImposterAmongus
 class Config:
     # Use environment variable for SECRET_KEY, fallback to a default only in development
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
