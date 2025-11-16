@@ -13,6 +13,7 @@ class User(UserMixin, db.Model):
                      default='student', index=True)  # admin | teacher | student
     status = db.Column(db.String(20), nullable=False, default='active', index=True)
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.current_timestamp())
+    last_login = db.Column(db.DateTime, nullable=True)
 
     student_profile = db.relationship('Student', backref='user', uselist=False, cascade='all, delete-orphan')
     teacher_profile = db.relationship('Teacher', backref='user', uselist=False, cascade='all, delete-orphan')

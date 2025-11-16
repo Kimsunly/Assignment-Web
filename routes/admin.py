@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, abort
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, abort, current_app
 from flask_login import login_required, current_user
 from functools import wraps
 from extensions import db
@@ -10,6 +10,10 @@ from models.class_model import Class
 from models.submission import Submission
 from werkzeug.security import generate_password_hash
 from datetime import datetime
+from utils.helpers import (
+    validate_email, validate_password, sanitize_username, 
+    get_user_display_name, format_datetime
+)
 
 admin_bp = Blueprint("admin_bp", __name__, url_prefix="/admin")
 
@@ -68,13 +72,19 @@ def dashboard():
 
     # Get all users for management
     all_users_data = User.query.all()
-    all_users = [{
-        'id': u.id,
-        'username': u.username,
-        'email': u.email,
-        'role': u.role,
-        'status': u.status
-    } for u in all_users_data]
+    all_users = []
+    for u in all_users_data:
+        display_info = get_user_display_name(u)
+        all_users.append({
+            'id': u.id,
+            'username': u.username,
+            'email': u.email,
+            'role': u.role,
+            'status': u.status,
+            'first_name': display_info['first_name'],
+            'last_name': display_info['last_name'],
+            'created_at': format_datetime(u.created_at)
+        })
 
     # Calculate assignment stats
     total_assignment_count = Assignment.query.count()
@@ -94,8 +104,8 @@ def dashboard():
     }
 
     system_health = {
-        'active_sessions': 0,  # Could be tracked with session management
-        'last_backup': 'N/A'   # Could be tracked with backup system
+        'active_sessions': 0,
+        'last_backup': 'N/A'
     }
 
     return render_template(
@@ -116,27 +126,12 @@ def manage_users():
     users_data = User.query.all()
     users = []
     for u in users_data:
-        # Try to get profile names from related profiles (student/teacher)
-        first_name = ''
-        last_name = ''
-        if hasattr(u, 'student_profile') and u.student_profile:
-            first_name = u.student_profile.first_name or ''
-            last_name = u.student_profile.last_name or ''
-        elif hasattr(u, 'teacher_profile') and u.teacher_profile:
-            first_name = u.teacher_profile.first_name or ''
-            last_name = u.teacher_profile.last_name or ''
-        else:
-            # Fallback to username split
-            parts = (u.username or '').split('.')
-            first_name = parts[0].capitalize(
-            ) if parts and parts[0] else u.username
-            last_name = ''
-
+        display_info = get_user_display_name(u)
         users.append({
             'id': u.id,
             'username': u.username,
-            'first_name': first_name,
-            'last_name': last_name,
+            'first_name': display_info['first_name'],
+            'last_name': display_info['last_name'],
             'email': u.email,
             'role': u.role,
             'status': u.status,
@@ -167,17 +162,27 @@ def manage_teachers():
 @admin_required
 def manage_students():
     students_data = Student.query.all()
-    students = [{
-        'id': s.id,
-        'first_name': s.first_name or '',
-        'last_name': s.last_name or '',
-        'full_name': s.full_name,
-        'email': s.user.email if s.user else 'N/A',
-        'major': s.major or 'N/A',
-        'year': s.year or 'N/A',
-        'section': s.section or 'N/A',
-        'username': s.user.username if s.user else 'N/A'
-    } for s in students_data]
+    students = []
+    for s in students_data:
+        # Get class name if student is enrolled in any class
+        class_name = None
+        if hasattr(s, 'enrolled_classes') and s.enrolled_classes:
+            class_name = s.enrolled_classes[0].name if len(
+                s.enrolled_classes) > 0 else None
+
+        students.append({
+            'id': s.id,
+            'first_name': s.first_name or '',
+            'last_name': s.last_name or '',
+            'full_name': s.full_name,
+            'email': s.user.email if s.user else 'N/A',
+            'major': s.major or 'N/A',
+            'year': s.year or 'N/A',
+            'section': s.section or 'N/A',
+            'username': s.user.username if s.user else 'N/A',
+            'class_name': class_name
+        })
+
     return render_template("admin/manage_students.html", students=students)
 
 
@@ -185,16 +190,35 @@ def manage_students():
 @admin_required
 def manage_assignments():
     assignments_data = Assignment.query.all()
-    assignments = [{
-        'id': a.id,
-        'title': a.title,
-        'description': a.description[:100] + '...' if len(a.description) > 100 else a.description,
-        'due_date': a.due_date.strftime('%b %d, %Y') if a.due_date else 'N/A',
-        'status': a.status,
-        'teacher': a.teacher.full_name if a.teacher else 'N/A',
-        'class': a.class_obj.name if a.class_obj else 'N/A',
-        'submissions_count': a.submissions.count()
-    } for a in assignments_data]
+    assignments = []
+    for a in assignments_data:
+        # Get teacher name
+        teacher_name = 'N/A'
+        if a.teacher:
+            teacher_name = a.teacher.full_name
+
+        # Get course/class name
+        course_name = 'N/A'
+        if a.class_obj:
+            course_name = a.class_obj.name
+
+        # Get submissions count
+        submissions_count = Submission.query.filter_by(
+            assignment_id=a.id).count()
+
+        assignments.append({
+            'id': a.id,
+            'title': a.title,
+            'description': a.description[:100] + '...' if len(a.description) > 100 else a.description,
+            'due_date': a.due_date,
+            'status': a.status,
+            'teacher': teacher_name,
+            'teacher_name': teacher_name,
+            'class': course_name,
+            'course_name': course_name,
+            'submissions_count': submissions_count
+        })
+
     return render_template("admin/manage_assignments.html", assignments=assignments)
 
 
@@ -203,34 +227,30 @@ def manage_assignments():
 def manage_roles():
     users_data = User.query.all()
     users = []
-    for u in users_data:
-        first_name = ''
-        last_name = ''
-        if hasattr(u, 'student_profile') and u.student_profile:
-            first_name = u.student_profile.first_name or ''
-            last_name = u.student_profile.last_name or ''
-        elif hasattr(u, 'teacher_profile') and u.teacher_profile:
-            first_name = u.teacher_profile.first_name or ''
-            last_name = u.teacher_profile.last_name or ''
-        else:
-            parts = (u.username or '').split('.')
-            first_name = parts[0].capitalize(
-            ) if parts and parts[0] else u.username
-            last_name = parts[1].capitalize() if len(parts) > 1 else ''
 
+    # Calculate role counts
+    admin_count = User.query.filter_by(role='admin').count()
+    teacher_count = User.query.filter_by(role='teacher').count()
+    student_count = User.query.filter_by(role='student').count()
+
+    for u in users_data:
+        display_info = get_user_display_name(u)
         users.append({
             'id': u.id,
             'username': u.username,
             'email': u.email,
             'role': u.role,
             'status': u.status,
-            'first_name': first_name,
-            'last_name': last_name,
+            'first_name': display_info['first_name'],
+            'last_name': display_info['last_name'],
             'created_at': u.created_at,
-            'last_login': u.last_login.strftime('%b %d, %Y') if getattr(u, 'last_login', None) else None
+            'last_login': format_datetime(u.last_login) if u.last_login else 'Never'
         })
 
-    return render_template("admin/manage_roles.html", users=users)
+    return render_template("admin/manage_roles.html", users=users,
+                           admin_count=admin_count,
+                           teacher_count=teacher_count,
+                           student_count=student_count)
 
 
 @admin_bp.route("/profile", methods=['GET', 'POST'])
@@ -268,15 +288,50 @@ def add_user():
         email = request.form.get('email')
         password = request.form.get('password')
         role = request.form.get('role', 'student')
+        first_name = request.form.get('first_name', '')
+        last_name = request.form.get('last_name', '')
 
-        if not username or not email or not password:
-            flash('All fields are required.', 'danger')
+        # Generate username if not provided
+        if not username:
+            username = f"{first_name.lower()}.{last_name.lower()}"
+
+        if not email or not password:
+            flash('Email and password are required.', 'danger')
+            return redirect(url_for('admin_bp.add_user'))
+
+        # Validate email format
+        if not validate_email(email):
+            flash('Invalid email format.', 'danger')
+            return redirect(url_for('admin_bp.add_user'))
+
+        # Validate password strength
+        is_valid, error_msg = validate_password(password)
+        if not is_valid:
+            flash(error_msg, 'danger')
+            return redirect(url_for('admin_bp.add_user'))
+
+        # Sanitize username
+        username = sanitize_username(username)
+        if not username:
+            flash('Invalid username format.', 'danger')
             return redirect(url_for('admin_bp.add_user'))
 
         # Check if user already exists
         if User.query.filter_by(username=username).first() or User.query.filter_by(email=email).first():
             flash('Username or email already exists.', 'danger')
             return redirect(url_for('admin_bp.add_user'))
+
+        # 🔒 SECURITY: Validate admin role assignment
+        # Only whitelisted emails/usernames can be assigned admin role
+        if role == "admin":
+            admin_whitelist = current_app.config.get('ADMIN_WHITELIST', [])
+            email_lower = email.lower()
+            username_lower = username.lower()
+            
+            # Check if email or username is in whitelist
+            if not (email_lower in admin_whitelist or username_lower in admin_whitelist):
+                flash('Admin role can only be assigned to whitelisted accounts. Please add this email/username to ADMIN_WHITELIST in configuration.', 'danger')
+                return redirect(url_for('admin_bp.add_user'))
 
         # Create new user
         new_user = User(
@@ -292,10 +347,18 @@ def add_user():
 
             # Create profile based on role
             if role == 'student':
-                student = Student(user_id=new_user.id)
+                student = Student(
+                    user_id=new_user.id,
+                    first_name=first_name,
+                    last_name=last_name
+                )
                 db.session.add(student)
             elif role == 'teacher':
-                teacher = Teacher(user_id=new_user.id)
+                teacher = Teacher(
+                    user_id=new_user.id,
+                    first_name=first_name,
+                    last_name=last_name
+                )
                 db.session.add(teacher)
 
             db.session.commit()
@@ -322,6 +385,23 @@ def add_teacher():
 
         if not username or not email or not password:
             flash('Username, email, and password are required.', 'danger')
+            return redirect(url_for('admin_bp.add_teacher'))
+
+        # Validate email format
+        if not validate_email(email):
+            flash('Invalid email format.', 'danger')
+            return redirect(url_for('admin_bp.add_teacher'))
+
+        # Validate password strength
+        is_valid, error_msg = validate_password(password)
+        if not is_valid:
+            flash(error_msg, 'danger')
+            return redirect(url_for('admin_bp.add_teacher'))
+
+        # Sanitize username
+        username = sanitize_username(username)
+        if not username:
+            flash('Invalid username format.', 'danger')
             return redirect(url_for('admin_bp.add_teacher'))
 
         # Check if user already exists
@@ -376,6 +456,23 @@ def add_student():
             flash('Username, email, and password are required.', 'danger')
             return redirect(url_for('admin_bp.add_student'))
 
+        # Validate email format
+        if not validate_email(email):
+            flash('Invalid email format.', 'danger')
+            return redirect(url_for('admin_bp.add_student'))
+
+        # Validate password strength
+        is_valid, error_msg = validate_password(password)
+        if not is_valid:
+            flash(error_msg, 'danger')
+            return redirect(url_for('admin_bp.add_student'))
+
+        # Sanitize username
+        username = sanitize_username(username)
+        if not username:
+            flash('Invalid username format.', 'danger')
+            return redirect(url_for('admin_bp.add_student'))
+
         # Check if user already exists
         if User.query.filter_by(username=username).first() or User.query.filter_by(email=email).first():
             flash('Username or email already exists.', 'danger')
@@ -418,20 +515,49 @@ def system_settings():
     return render_template("admin/system_settings.html")
 
 
+@admin_bp.route("/settings/update", methods=['POST'])
+@admin_required
+def update_settings():
+    # Placeholder for settings update
+    flash('Settings updated successfully!', 'success')
+    return redirect(url_for('admin_bp.system_settings'))
+
+
 @admin_bp.route("/activity-log")
 @admin_required
 def activity_log():
-    # Simplified activity log - could be enhanced with actual activity tracking
     activities = []
+    activity_type_filter = request.args.get('type', '')
 
     # Get recent user registrations
-    recent_users = User.query.order_by(User.created_at.desc()).limit(10).all()
+    recent_users = User.query.order_by(User.created_at.desc()).limit(20).all()
     for user in recent_users:
-        activities.append({
-            'type': 'user_registered',
-            'description': f'New {user.role} registered: {user.username}',
-            'timestamp': user.created_at if user.created_at else datetime.utcnow()
-        })
+        if not activity_type_filter or activity_type_filter == 'user_registered':
+            activities.append({
+                'type': 'user_registered',
+                'description': f'New {user.role} registered: {user.username}',
+                'timestamp': user.created_at if user.created_at else datetime.utcnow()
+            })
+
+    # Get recent assignments
+    recent_assignments = Assignment.query.order_by(Assignment.created_at.desc()).limit(10).all()
+    for assignment in recent_assignments:
+        if not activity_type_filter or activity_type_filter == 'assignment_created':
+            activities.append({
+                'type': 'assignment_created',
+                'description': f'Assignment "{assignment.title}" created',
+                'timestamp': assignment.created_at if assignment.created_at else datetime.utcnow()
+            })
+
+    # Get recent graded submissions
+    recent_graded = Submission.query.filter(Submission.grade.isnot(None)).order_by(Submission.graded_at.desc()).limit(10).all()
+    for submission in recent_graded:
+        if not activity_type_filter or activity_type_filter == 'assignment_graded':
+            activities.append({
+                'type': 'assignment_graded',
+                'description': f'Assignment graded for student ID {submission.student_id}',
+                'timestamp': submission.graded_at if submission.graded_at else datetime.utcnow()
+            })
 
     # Sort by timestamp
     activities.sort(key=lambda x: x['timestamp'], reverse=True)
@@ -443,13 +569,15 @@ def activity_log():
 @admin_required
 def view_user(user_id):
     user_data = User.query.get_or_404(user_id)
+    display_info = get_user_display_name(user_data)
+    
     user = {
         'id': user_data.id,
         'username': user_data.username,
         'email': user_data.email,
         'role': user_data.role,
         'status': user_data.status,
-        'created_at': user_data.created_at.strftime('%b %d, %Y') if user_data.created_at else 'N/A'
+        'created_at': format_datetime(user_data.created_at)
     }
 
     # Get profile info based on role
@@ -485,6 +613,18 @@ def change_role(user_id):
             flash('Invalid role.', 'danger')
             return redirect(url_for('admin_bp.change_role', user_id=user_id))
 
+        # 🔒 SECURITY: Validate admin role assignment
+        # Only whitelisted emails/usernames can be assigned admin role
+        if new_role == "admin":
+            admin_whitelist = current_app.config.get('ADMIN_WHITELIST', [])
+            email_lower = user.email.lower()
+            username_lower = user.username.lower()
+            
+            # Check if email or username is in whitelist
+            if not (email_lower in admin_whitelist or username_lower in admin_whitelist):
+                flash('Admin role can only be assigned to whitelisted accounts. Please add this email/username to ADMIN_WHITELIST in configuration.', 'danger')
+                return redirect(url_for('admin_bp.change_role', user_id=user_id))
+
         old_role = user.role
         user.role = new_role
 
@@ -516,9 +656,10 @@ def change_role(user_id):
         'id': user.id,
         'username': user.username,
         'email': user.email,
-        'role': user.role
+        'role': user.role,
+        'created_at': user.created_at
     }
-    return render_template("admin/manage_role.html", user=user_data)
+    return render_template("admin/change_role.html", user=user_data)
 
 
 @admin_bp.route("/users/<int:user_id>/delete", methods=['POST', 'DELETE'])
@@ -532,6 +673,29 @@ def delete_user(user_id):
         db.session.delete(user)
         db.session.commit()
         return jsonify({'success': True, 'message': 'User deleted successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+
+@admin_bp.route("/assignments/<int:assignment_id>/delete", methods=['POST', 'DELETE'])
+@admin_required
+def delete_assignment(assignment_id):
+    """Delete an assignment and all its submissions"""
+    try:
+        assignment = Assignment.query.get_or_404(assignment_id)
+        assignment_title = assignment.title
+
+        # Delete all submissions associated with this assignment
+        Submission.query.filter_by(assignment_id=assignment_id).delete()
+
+        # Delete the assignment
+        db.session.delete(assignment)
+        db.session.commit()
+
+        flash(
+            f'Assignment "{assignment_title}" deleted successfully!', 'success')
+        return jsonify({'success': True, 'message': f'Assignment "{assignment_title}" deleted successfully'})
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 400

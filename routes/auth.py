@@ -1,10 +1,12 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, logout_user, login_required
 from extensions import db
 from models.user import User
 from models.student import Student
 from models.teacher import Teacher
+from utils.helpers import validate_email, validate_password, sanitize_username
+from datetime import datetime
 
 auth_bp = Blueprint("auth_bp", __name__)
 
@@ -31,6 +33,23 @@ def register():
             flash("Passwords do not match.", "danger")
             return redirect(url_for("auth_bp.register"))
 
+        # Validate email format
+        if not validate_email(email):
+            flash("Invalid email format.", "danger")
+            return redirect(url_for("auth_bp.register"))
+
+        # Validate password strength
+        is_valid, error_msg = validate_password(password)
+        if not is_valid:
+            flash(error_msg, "danger")
+            return redirect(url_for("auth_bp.register"))
+
+        # Sanitize username
+        username = sanitize_username(username)
+        if not username:
+            flash("Invalid username format.", "danger")
+            return redirect(url_for("auth_bp.register"))
+
         # 🧠 Check if user/email already exists
         if User.query.filter_by(username=username).first():
             flash("Username already exists.", "danger")
@@ -39,6 +58,18 @@ def register():
         if User.query.filter_by(email=email).first():
             flash("Email already registered.", "danger")
             return redirect(url_for("auth_bp.register"))
+
+        # 🔒 SECURITY: Prevent unauthorized admin registration
+        # Only whitelisted emails/usernames can register as admin
+        if role == "admin":
+            admin_whitelist = current_app.config.get('ADMIN_WHITELIST', [])
+            email_lower = email.lower()
+            username_lower = username.lower()
+            
+            # Check if email or username is in whitelist
+            if not (email_lower in admin_whitelist or username_lower in admin_whitelist):
+                flash("Admin registration is restricted. Only authorized accounts can register as admin.", "danger")
+                return redirect(url_for("auth_bp.register"))
 
         # 🧂 Hash password
         hashed_pw = generate_password_hash(password)
@@ -77,6 +108,10 @@ def login():
         user = User.query.filter_by(email=email).first()
 
         if user and check_password_hash(user.password, password):
+            # Update last login
+            user.last_login = datetime.utcnow()
+            db.session.commit()
+            
             login_user(user)
             flash("Login successful!", "success")
 

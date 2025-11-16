@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}Dashboard{% endblock %} - EduHub</title>
 
     <!-- Bootstrap 5 CSS -->
@@ -607,6 +608,35 @@
                 sidebar.classList.remove('active');
             }
         });
+
+        // CSRF Token helper function
+        function getCSRFToken() {
+            const metaTag = document.querySelector('meta[name="csrf-token"]');
+            return metaTag ? metaTag.getAttribute('content') : '';
+        }
+
+        // Helper function for fetch requests with CSRF token
+        function fetchWithCSRF(url, options = {}) {
+            const token = getCSRFToken();
+            
+            // If body is FormData, append CSRF token to it
+            if (options.body instanceof FormData) {
+                options.body.append('csrf_token', token);
+                // Don't set Content-Type header for FormData, browser will set it with boundary
+                return fetch(url, options);
+            }
+            
+            // For JSON requests, add token to headers
+            const headers = {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': token,
+                ...options.headers
+            };
+            return fetch(url, {
+                ...options,
+                headers: headers
+            });
+        }
     </script>
 
     {% block extra_js %}{% endblock %}

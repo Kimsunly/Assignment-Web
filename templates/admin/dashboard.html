@@ -237,9 +237,8 @@ Admin ID: {{ admin.get('id','N/A') }}
         // Build URL dynamically in JS
         const url = `/admin/users/${id}/delete`;
 
-        fetch(url, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' }
+        fetchWithCSRF(url, {
+            method: 'DELETE'
         })
             .then(res => res.json())
             .then(data => {

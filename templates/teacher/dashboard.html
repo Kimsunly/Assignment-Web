@@ -12,31 +12,31 @@
     </a>
 </li>
 <li>
-    <a href="{{ url_for('teacher_bp.teacher_students') }}">
+    <a href="{{ url_for('teacher_bp.students') }}">
         <i class="fas fa-users"></i>
         My Students
     </a>
 </li>
 <li>
-    <a href="{{ url_for('teacher_bp.teacher_classes') }}">
+    <a href="{{ url_for('teacher_bp.classes') }}">
         <i class="fas fa-chalkboard"></i>
         Classes
     </a>
 </li>
 <li>
-    <a href="{{ url_for('teacher_bp.teacher_assignments') }}">
+    <a href="{{ url_for('teacher_bp.assignments') }}">
         <i class="fas fa-tasks"></i>
         Assignments
     </a>
 </li>
 <li>
-    <a href="{{ url_for('teacher_bp.teacher_grades') }}">
+    <a href="{{ url_for('teacher_bp.grades') }}">
         <i class="fas fa-chart-line"></i>
         Grades
     </a>
 </li>
 <li>
-    <a href="{{ url_for('teacher_bp.teacher_profile') }}">
+    <a href="{{ url_for('teacher_bp.profile') }}">
         <i class="fas fa-user-edit"></i>
         Edit Profile
     </a>
@@ -108,7 +108,7 @@
     <div class="content-card">
         <div class="card-header">
             <h4><i class="fas fa-chalkboard"></i> My Classes</h4>
-            <a href="{{ url_for('teacher_bp.teacher_classes') }}" class="btn-custom btn-primary-custom">View All</a>
+            <a href="{{ url_for('teacher_bp.classes') }}" class="btn-custom btn-primary-custom">View All</a>
         </div>
         <div class="table-responsive">
             <table class="table table-hover">
@@ -146,7 +146,7 @@
     <div class="content-card">
         <div class="card-header">
             <h4><i class="fas fa-tasks"></i> Recent Assignments</h4>
-            <a href="{{ url_for('teacher_bp.teacher_assignments') }}" class="btn-custom btn-primary-custom">Manage</a>
+            <a href="{{ url_for('teacher_bp.assignments') }}" class="btn-custom btn-primary-custom">Manage</a>
         </div>
         <div class="table-responsive">
             <table class="table table-hover">
@@ -193,7 +193,7 @@
 <div class="content-card">
     <div class="card-header">
         <h4><i class="fas fa-users"></i> Recent Student Activity</h4>
-        <a href="{{ url_for('teacher_bp.teacher_students') }}" class="btn-custom btn-primary-custom">View All
+        <a href="{{ url_for('teacher_bp.students') }}" class="btn-custom btn-primary-custom">View All
             Students</a>
     </div>
     <div class="table-responsive">

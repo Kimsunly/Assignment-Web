@@ -83,21 +83,21 @@
         <div class="stat-icon">
             <i class="fas fa-user-shield"></i>
         </div>
-        <div class="stat-value">0</div>
+        <div class="stat-value">{{ admin_count }}</div>
         <div class="stat-label">Admins</div>
     </div>
     <div class="stat-card success">
         <div class="stat-icon">
             <i class="fas fa-chalkboard-teacher"></i>
         </div>
-        <div class="stat-value">0</div>
+        <div class="stat-value">{{ teacher_count }}</div>
         <div class="stat-label">Teachers</div>
     </div>
     <div class="stat-card info">
         <div class="stat-icon">
             <i class="fas fa-user-graduate"></i>
         </div>
-        <div class="stat-value">0</div>
+        <div class="stat-value">{{ student_count }}</div>
         <div class="stat-label">Students</div>
     </div>
     <div class="stat-card warning">
@@ -156,7 +156,8 @@
                                 {% elif user.role == 'teacher' %}linear-gradient(135deg, var(--success-color), #10b981)
                                 {% else %}linear-gradient(135deg, var(--info-color), #3b82f6){% endif %};
                                 display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
-                                {{ user.first_name[0] }}{{ user.last_name[0] }}
+                                {{ user.first_name[0] if user.first_name else '?' }}{{ user.last_name[0] if
+                                user.last_name else '?' }}
                             </div>
                             <div>
                                 <div style="font-weight: 600; color: #1f2937;">{{ user.first_name }} {{ user.last_name
@@ -183,11 +184,10 @@
                     </td>
                     <td style="padding: 1rem;">
                         <div style="display: flex; gap: 0.5rem;">
-                            <button
-                                onclick="openChangeRoleModal('{{ user.id }}', '{{ user.first_name }} {{ user.last_name }}', '{{ user.role }}')"
+                            <a href="{{ url_for('admin_bp.change_role', user_id=user.id) }}"
                                 class="btn-custom btn-primary-custom" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
                                 <i class="fas fa-exchange-alt"></i> Change Role
-                            </button>
+                            </a>
                         </div>
                     </td>
                 </tr>
@@ -206,93 +206,21 @@
         </table>
     </div>
 </div>
-
-<!-- Role Change Modal -->
-<div id="changeRoleModal"
-    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
-    <div style="background: white; border-radius: 15px; padding: 2rem; max-width: 500px; width: 90%;">
-        <h4 style="margin-bottom: 1.5rem;"><i class="fas fa-user-shield"></i> Change User Role</h4>
-
-        <div style="background: var(--light-bg); border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem;">
-            <p style="margin: 0; color: #6b7280; font-size: 0.9rem;"><strong>User:</strong> <span
-                    id="modalUserName"></span></p>
-            <p style="margin: 0.5rem 0 0; color: #6b7280; font-size: 0.9rem;"><strong>Current Role:</strong> <span
-                    id="modalCurrentRole"></span></p>
-        </div>
-
-        <div style="margin-bottom: 1.5rem;">
-            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #1f2937;">Select New
-                Role</label>
-            <select id="newRoleSelect" class="form-select"
-                style="border-radius: 10px; border: 1px solid #e5e7eb; padding: 0.75rem;">
-                <option value="student">Student</option>
-                <option value="teacher">Teacher</option>
-                <option value="admin">Admin</option>
-            </select>
-        </div>
-
-        <div
-            style="background: #fef3c7; border-left: 4px solid var(--warning-color); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
-            <p style="margin: 0; font-size: 0.9rem; color: #92400e;">
-                <i class="fas fa-exclamation-triangle"></i>
-                <strong>Warning:</strong> Changing a user's role will immediately affect their permissions and access
-                level.
-            </p>
-        </div>
-
-        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-            <button onclick="closeChangeRoleModal()" class="btn-custom btn-outline-custom">Cancel</button>
-            <button onclick="confirmRoleChange()" class="btn-custom btn-primary-custom">
-                <i class="fas fa-check"></i> Confirm Change
-            </button>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    let selectedUserId = null;
-
-    function openChangeRoleModal(userId, userName, currentRole) {
-        selectedUserId = userId;
-        document.getElementById('modalUserName').textContent = userName;
-        document.getElementById('modalCurrentRole').textContent = currentRole.charAt(0).toUpperCase() + currentRole.slice(1);
-        document.getElementById('newRoleSelect').value = currentRole;
-        document.getElementById('changeRoleModal').style.display = 'flex';
-    }
-
-    function closeChangeRoleModal() {
-        document.getElementById('changeRoleModal').style.display = 'none';
-        selectedUserId = null;
-    }
-
-    function confirmRoleChange() {
-        const newRole = document.getElementById('newRoleSelect').value;
-
-        if (selectedUserId && newRole) {
-            // Add your role change logic here
-            console.log(`Changing user ${selectedUserId} to role: ${newRole}`);
-
-            alert(`Role change initiated for user ${selectedUserId} to ${newRole}`);
-            closeChangeRoleModal();
-        }
-    }
-
     function applyFilters() {
         const roleFilter = document.getElementById('roleFilter').value;
-        console.log('Applying filter:', roleFilter);
+        if (roleFilter) {
+            // Reload page with filter parameter
+            window.location.href = `{{ url_for('admin_bp.manage_roles') }}?role=${roleFilter}`;
+        }
     }
 
     function resetFilters() {
         document.getElementById('roleFilter').value = '';
-        location.reload();
+        window.location.href = '{{ url_for("admin_bp.manage_roles") }}';
     }
-
-    document.getElementById('changeRoleModal').addEventListener('click', function (e) {
-        if (e.target === this) {
-            closeChangeRoleModal();
-        }
-    });
 </script>
 {% endblock %}
