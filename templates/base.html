@@ -7,6 +7,9 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}Dashboard{% endblock %} - EduHub</title>
 
+    <!-- Favicon -->
+    <link rel="icon" href="{{ url_for('static', filename='uploads/images/login-illustration.png') }}" type="image/png">
+
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
@@ -534,8 +537,14 @@
                 font-size: 1.1rem;
             }
         }
-        {% block extra_css %}
-        {% endblock %}
+
+            {
+            % block extra_css %
+        }
+
+            {
+            % endblock %
+        }
     </style>
 </head>
 
@@ -618,14 +627,14 @@
         // Helper function for fetch requests with CSRF token
         function fetchWithCSRF(url, options = {}) {
             const token = getCSRFToken();
-            
+
             // If body is FormData, append CSRF token to it
             if (options.body instanceof FormData) {
                 options.body.append('csrf_token', token);
                 // Don't set Content-Type header for FormData, browser will set it with boundary
                 return fetch(url, options);
             }
-            
+
             // For JSON requests, add token to headers
             const headers = {
                 'Content-Type': 'application/json',

@@ -29,6 +29,8 @@
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             overflow-x: hidden;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
         }
 
         /* Navigation */
@@ -37,6 +39,7 @@
             backdrop-filter: blur(10px);
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             padding: 1rem 0;
+            animation: fadeInDown 0.8s ease-out;
         }
 
         .navbar-brand {
@@ -69,6 +72,23 @@
             font-weight: 600;
             transition: all 0.3s;
             box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary-custom::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-primary-custom:hover::before {
+            left: 100%;
         }
 
         .btn-primary-custom:hover {
@@ -126,6 +146,52 @@
             animation: float 8s ease-in-out infinite;
         }
 
+        .floating-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .shape {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .shape:nth-child(1) {
+            width: 80px;
+            height: 80px;
+            top: 20%;
+            left: 10%;
+            animation: float 7s ease-in-out infinite;
+        }
+
+        .shape:nth-child(2) {
+            width: 60px;
+            height: 60px;
+            top: 60%;
+            left: 80%;
+            animation: float 9s ease-in-out infinite 1s;
+        }
+
+        .shape:nth-child(3) {
+            width: 100px;
+            height: 100px;
+            top: 40%;
+            right: 15%;
+            animation: float 6s ease-in-out infinite 2s;
+        }
+
+        .shape:nth-child(4) {
+            width: 40px;
+            height: 40px;
+            top: 80%;
+            left: 50%;
+            animation: float 8s ease-in-out infinite 1.5s;
+        }
+
         @keyframes float {
 
             0%,
@@ -138,10 +204,117 @@
             }
         }
 
+        @keyframes gradient {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+
+            100% {
+                background-position: 1000px 0;
+            }
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
         .hero-content {
             position: relative;
             z-index: 2;
             color: white;
+            animation: fadeInUp 1s ease-out;
         }
 
         .hero-content h1 {
@@ -149,18 +322,21 @@
             font-weight: 800;
             margin-bottom: 1.5rem;
             line-height: 1.2;
+            animation: slideInLeft 1s ease-out;
         }
 
         .hero-content p {
             font-size: 1.25rem;
             margin-bottom: 2rem;
             opacity: 0.9;
+            animation: slideInLeft 1s ease-out 0.2s both;
         }
 
         .hero-buttons {
             display: flex;
             gap: 1rem;
             flex-wrap: wrap;
+            animation: fadeInUp 1s ease-out 0.4s both;
         }
 
         /* Feature Cards */
@@ -177,6 +353,30 @@
             transition: all 0.3s;
             height: 100%;
             border: 1px solid #e5e7eb;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 20px;
+            padding: 2px;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color), var(--primary-color));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+            animation: rotate 3s linear infinite;
         }
 
         .feature-card:hover {
@@ -193,6 +393,11 @@
             justify-content: center;
             font-size: 2rem;
             margin-bottom: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover .feature-icon {
+            animation: bounce 0.6s ease;
         }
 
         .feature-icon.purple {
@@ -258,6 +463,19 @@
             justify-content: center;
             font-size: 3rem;
             margin-bottom: 1.5rem;
+            position: relative;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .role-icon::before {
+            content: '';
+            position: absolute;
+            width: 120%;
+            height: 120%;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            opacity: 0.3;
+            animation: pulse 2s ease-in-out infinite;
         }
 
         .role-icon.admin {
@@ -312,12 +530,30 @@
         .stat-box {
             text-align: center;
             padding: 2rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .stat-box:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .stat-box:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .stat-box:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .stat-box:nth-child(4) {
+            animation-delay: 0.4s;
         }
 
         .stat-box h2 {
             font-size: 3rem;
             font-weight: 800;
             margin-bottom: 0.5rem;
+            animation: bounce 2s ease-in-out infinite;
         }
 
         .stat-box p {
@@ -330,6 +566,32 @@
             padding: 5rem 0;
             background: white;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            top: -200px;
+            right: -200px;
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        .cta-section::after {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            bottom: -150px;
+            left: -150px;
+            animation: pulse 5s ease-in-out infinite 1s;
         }
 
         .cta-section h2 {
@@ -337,12 +599,16 @@
             font-weight: 800;
             margin-bottom: 1rem;
             color: var(--dark-bg);
+            position: relative;
+            z-index: 1;
         }
 
         .cta-section p {
             font-size: 1.2rem;
             color: #6b7280;
             margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
         }
 
         /* Footer */
@@ -452,6 +718,12 @@
 
     <!-- Hero Section -->
     <section class="hero-section">
+        <div class="floating-shapes">
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+        </div>
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-6 hero-content">
@@ -468,7 +740,8 @@
                     </div>
                 </div>
                 <div class="col-lg-6 text-center d-none d-lg-block">
-                    <i class="fas fa-laptop-code" style="font-size: 20rem; color: rgba(255, 255, 255, 0.2);"></i>
+                    <i class="fas fa-laptop-code"
+                        style="font-size: 20rem; color: rgba(255, 255, 255, 0.2); animation: pulse 3s ease-in-out infinite;"></i>
                 </div>
             </div>
         </div>
