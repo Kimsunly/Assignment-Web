@@ -7,7 +7,8 @@ It supports three main roles:
 - **Student** – joins classes, views assignments, and submits work.
 
 The app uses **Flask blueprints**, **SQLAlchemy**, and **Flask-Login** with a clean separation between routes, models, templates, and utility helpers.
-
+🔗 WEBSITE HOSTING: https://assignment-web-szql.onrender.com
+🔗 VIDEO YOUTUBE DEMO: https://youtu.be/LuX-5FhAz7M
 ---
 
 ## Features
