@@ -6,4 +6,4 @@ _ after that, activiate it :
 
 _ finally, to run the web:     python app.py
 
-_ To close the server use : CTRL + w
+_ To close the server use : CTRL + C
