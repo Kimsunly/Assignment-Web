@@ -324,7 +324,12 @@ Use these logs to debug errors in production-like environments.
 ---
 
 ## License
-
-Add your chosen license here (for example, MIT, GPL, or “All rights reserved”). If you are submitting this for a university assignment, include any required attribution or academic integrity notes.
+Project OOAD Submission For ITE Year3 Semester 1 with members:
+_ LY KIMSUN
+_ LY MENGHONG
+_ RETH CHANRITH
+_ PECH SUYHENG
+_ MEACH KIMHAB
+_ THOEURN KIMCHHAY
 
 
